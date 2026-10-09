@@ -1,0 +1,45 @@
+/* Mobile refinements for the public site and concierge; desktop keeps its existing layout. */
+@media (max-width: 639px) {
+  #public-site #site-nav > div { display: flex; justify-content: space-between; gap: 12px; padding-inline: 20px; }
+  #public-site #site-nav > div > div:first-child { display: none; }
+  #public-site #site-nav a { min-height: 44px; }
+  #public-site #site-nav > div > a { gap: 8px; }
+  #public-site #site-nav > div > a span > span { font-size: 8px; letter-spacing: .18em; }
+  #public-site > section { padding-inline: 20px; padding-block: 72px; scroll-margin-top: 88px; }
+  #public-site > section:first-of-type { padding: 0; }
+  #public-site > section:first-of-type > div:last-child { padding: 128px 20px 36px; }
+  #public-site h1 { font-size: clamp(2.5rem, 11vw, 3rem); line-height: 1.04; }
+  #public-site > section:first-of-type h1 + p { margin-top: 24px; font-size: 16px; line-height: 1.75; }
+  #public-site > section:first-of-type .mt-11 { margin-top: 28px; }
+  #public-site > section:first-of-type .mt-16 { margin-top: 36px; gap: 16px; font-size: 10px; }
+  #public-site .btn-light, #public-site .btn-ghost-light,
+  #public-site .btn-dark, #public-site .btn-outline { min-height: 48px; width: 100%; }
+  #public-site #approach .mt-24 { margin-top: 48px; }
+  #public-site #approach article { padding-block: 32px; }
+  #public-site .ornament { gap: 10px; }
+  #public-site .ornament::before, #public-site .ornament::after { width: 24px; flex-shrink: 0; }
+  #public-site [data-destination] > button { grid-template-columns: 28px minmax(0, 1fr); gap: 12px; }
+  #public-site #concierge [data-ask] { gap: 16px; }
+  #public-site > footer { padding-inline: 20px; padding-bottom: 100px; }
+
+  #concierge-widget [data-chat-open] { right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); }
+  #concierge-widget [data-chat-overlay] { top: var(--chat-viewport-top, 0px); bottom: auto; height: var(--chat-viewport-height, 100dvh); }
+  #concierge-widget [role="dialog"] { height: 100%; min-height: 0; border-radius: 0; }
+  #concierge-widget [role="dialog"] > header { flex-shrink: 0; padding: max(16px, env(safe-area-inset-top)) 16px 12px; }
+  #concierge-widget [role="dialog"] > header > div:first-of-type { padding-right: 44px; gap: 12px; }
+  #concierge-widget [data-chat-close] { z-index: 2; top: max(8px, env(safe-area-inset-top)); right: 8px; width: 44px; height: 44px; }
+  #concierge-widget [data-chat-title] { font-size: 23px; }
+  #concierge-widget [data-chat-status] { font-size: 10px; }
+  #concierge-widget [role="dialog"] > header > div:last-child { margin-top: 12px; padding-top: 10px; gap: 12px; }
+  #concierge-widget [data-chat-department] { text-align: right; }
+  #concierge-widget [data-chat-log] { min-height: 0; padding: 20px 12px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  #concierge-widget [data-text] { overflow-wrap: anywhere; }
+  #concierge-widget [role="dialog"] > footer { flex-shrink: 0; padding: 12px 12px max(12px, env(safe-area-inset-bottom)); }
+  #concierge-widget [data-chat-input] { font-size: 16px; }
+  #concierge-widget [data-chat-send] { width: 44px; height: 44px; flex-shrink: 0; }
+  #concierge-widget [data-chat-form] { padding-left: 14px; }
+  #concierge-widget [role="dialog"] > footer > p { font-size: 9px; letter-spacing: .1em; }
+  #concierge-widget [data-quick-actions] { padding-left: 0; }
+  #concierge-widget [data-quick-actions] button { min-height: 44px; }
+  #concierge-widget [data-inbox] { min-height: 44px; }
+}

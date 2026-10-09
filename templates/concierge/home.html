@@ -3,8 +3,12 @@
 
 {% block body_class %}bg-ivory{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+{% endblock %}
+
 {% block body %}
-<main class="min-h-screen overflow-x-clip bg-ivory">
+<main id="public-site" class="min-h-screen overflow-x-clip bg-ivory">
 
   <nav id="site-nav" data-solid="false" class="group/nav fixed inset-x-0 top-0 z-30 bg-transparent py-6 transition-all duration-500 data-[solid=true]:border-b data-[solid=true]:border-hairline data-[solid=true]:bg-paper/90 data-[solid=true]:py-3 data-[solid=true]:backdrop-blur-xl">
     <div class="mx-auto grid max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-12">

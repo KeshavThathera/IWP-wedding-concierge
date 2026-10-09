@@ -255,13 +255,37 @@
     }
   }
 
+  const mobileScreen = window.matchMedia("(max-width: 639px)");
+  let mobileScrollLock = null;
+
+  function syncMobileViewport() {
+    const viewport = window.visualViewport;
+    overlay.style.setProperty("--chat-viewport-height", `${viewport?.height ?? window.innerHeight}px`);
+    overlay.style.setProperty("--chat-viewport-top", `${viewport?.offsetTop ?? 0}px`);
+    if (isOpen() && mobileScreen.matches && !mobileScrollLock) {
+      mobileScrollLock = { y: window.scrollY, style: document.body.getAttribute("style") };
+      Object.assign(document.body.style, { position: "fixed", top: `-${mobileScrollLock.y}px`, width: "100%" });
+    } else if ((!isOpen() || !mobileScreen.matches) && mobileScrollLock) {
+      const { y, style } = mobileScrollLock;
+      if (style === null) document.body.removeAttribute("style");
+      else document.body.setAttribute("style", style);
+      mobileScrollLock = null;
+      window.scrollTo({ top: y, behavior: "instant" });
+    }
+  }
+
+  window.visualViewport?.addEventListener("resize", syncMobileViewport);
+  window.visualViewport?.addEventListener("scroll", syncMobileViewport);
+  window.addEventListener("resize", syncMobileViewport);
+
   async function open(prompt) {
     overlay.classList.replace("hidden", "flex");
     launcher.dataset.hidden = "true";
+    syncMobileViewport();
     setUnread(0);
     await load();
     schedulePoll(0);
-    input.focus();
+    if (!mobileScreen.matches) input.focus();
     if (prompt && !live) {
       await sleep(250);
       submit(prompt);
@@ -271,6 +295,8 @@
   function close() {
     overlay.classList.replace("flex", "hidden");
     launcher.dataset.hidden = "false";
+    input.blur();
+    syncMobileViewport();
     schedulePoll();
   }
 
