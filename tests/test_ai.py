@@ -202,7 +202,7 @@ def test_gemini_client_builds_the_documented_request(monkeypatch):
 
     assert captured["url"].endswith("/models/gemini-test:generateContent")
     assert captured["headers"]["X-goog-api-key"] == "test-key"
-    assert captured["timeout"] == 5
+    assert captured["timeout"] == pytest.approx(5, abs=0.05)  # minus the microseconds already spent
     body = captured["body"]
     assert body["systemInstruction"]["parts"][0]["text"] == "Be kind"
     assert body["contents"] == [{"role": "user", "parts": [{"text": "Hi\n\nAnyone there?"}]}]  # leading model turn dropped, users merged
