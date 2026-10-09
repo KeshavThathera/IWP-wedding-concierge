@@ -1,0 +1,14 @@
+{% extends "crm/base_staff.html" %}
+
+{% block content %}
+<div class="mx-auto max-w-[1680px]">
+  <div class="mb-8">
+    <p class="eyebrow text-gold">Lead pipeline</p>
+    <h1 class="mt-3 font-serif text-[40px] font-light leading-tight text-ink">From first hello to celebration.</h1>
+    <p class="mt-1 text-[14px] text-charcoal/60">Drag a lead between stages, or use its menu. Changes are saved to the database.</p>
+  </div>
+  <div class="scrollbar-thin -mx-4 overflow-x-auto px-4 pb-4 sm:-mx-10 sm:px-10">
+    {% include "crm/_board.html" %}
+  </div>
+</div>
+{% endblock %}

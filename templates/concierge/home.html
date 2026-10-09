@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}bg-ivory{% endblock %}
+
+{% block body %}
+<main class="min-h-screen overflow-x-clip bg-ivory">
+
+  {# Navigation: transparent over the hero, solid ivory once scrolled (see site.js). #}
+  <nav id="site-nav" data-solid="false" class="group/nav fixed inset-x-0 top-0 z-30 bg-transparent py-6 transition-all duration-500 data-[solid=true]:border-b data-[solid=true]:border-hairline data-[solid=true]:bg-paper/90 data-[solid=true]:py-3 data-[solid=true]:backdrop-blur-xl">
+    <div class="mx-auto grid max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-12">
+      <div class="flex items-center gap-9">
+        <a href="#approach" class="hidden whitespace-nowrap text-[11px] font-medium uppercase tracking-wide2 text-paper/80 transition hover:text-paper group-data-[solid=true]/nav:text-charcoal/70 group-data-[solid=true]/nav:hover:text-ink lg:block">The approach</a>
+        <a href="#destinations" class="hidden whitespace-nowrap text-[11px] font-medium uppercase tracking-wide2 text-paper/80 transition hover:text-paper group-data-[solid=true]/nav:text-charcoal/70 group-data-[solid=true]/nav:hover:text-ink lg:block">Destinations</a>
+        <a href="#concierge" class="hidden whitespace-nowrap text-[11px] font-medium uppercase tracking-wide2 text-paper/80 transition hover:text-paper group-data-[solid=true]/nav:text-charcoal/70 group-data-[solid=true]/nav:hover:text-ink lg:block">Concierge</a>
+      </div>
+      <a href="{% url 'concierge:home' %}" class="flex items-center gap-3 text-paper group-data-[solid=true]/nav:text-ink">
+        {% monogram "h-9 w-9 shrink-0 text-champagne group-data-[solid=true]/nav:text-gold" %}
+        <span class="whitespace-nowrap leading-none">
+          <strong class="block font-serif text-[22px] font-medium tracking-[.34em]">IWP</strong>
+          <span class="mt-1 block text-[9px] font-medium uppercase tracking-luxe text-paper/60 group-data-[solid=true]/nav:text-charcoal/50">The Wedding Concierge</span>
+        </span>
+      </a>
+      <div class="flex justify-end">
+        <a href="{% url 'crm:overview' %}" class="group inline-flex items-center gap-2 border-b border-paper/40 pb-1 text-[11px] font-medium uppercase tracking-wide2 text-paper transition hover:border-paper group-data-[solid=true]/nav:border-ink/30 group-data-[solid=true]/nav:text-ink group-data-[solid=true]/nav:hover:border-ink">
+          <span class="hidden sm:inline">Staff workspace</span><span class="sm:hidden">Staff</span>
+          {% icon "arrow-up-right" 14 "transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" %}
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  {# Hero #}
+  <section class="relative flex min-h-[100svh] items-end overflow-hidden bg-ink text-paper">
+    <img src="{% static 'images/wedding-hero.jpg' %}" alt="A palace wedding terrace in Rajasthan at sunset" fetchpriority="high" class="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-[62%_center]">
+    <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/25 to-ink/45"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/10 to-transparent"></div>
+    <div class="relative mx-auto w-full max-w-[1400px] px-6 pb-12 pt-36 lg:px-12 lg:pb-14">
+      <div class="max-w-3xl animate-reveal">
+        <p class="eyebrow text-champagne">The art of the first welcome</p>
+        <h1 class="mt-7 font-serif text-[clamp(3rem,6.4vw,6.25rem)] font-light leading-[.95] tracking-[-.02em]">
+          Every grand celebration begins with a <em class="font-light text-champagne">conversation.</em>
+        </h1>
+        <p class="mt-8 max-w-xl text-[17px] font-light leading-8 text-paper/80">
+          A multilingual concierge that welcomes each enquiry with the grace of a seasoned planner—and quietly guides it to the right specialist.
+        </p>
+        <div class="mt-11 flex flex-wrap gap-4">
+          <button type="button" data-ask class="btn-light">Begin a conversation {% icon "arrow-right" 15 %}</button>
+          <a href="{% url 'crm:overview' %}" class="btn-ghost-light">View the staff workspace</a>
+        </div>
+      </div>
+      <div class="mt-16 flex flex-wrap items-end justify-between gap-6 border-t border-paper/20 pt-6 text-[11px] uppercase tracking-wide2 text-paper/55">
+        <span>English · हिन्दी · Hinglish</span>
+        <span class="hidden sm:inline">Independent concept · not an official IWP site</span>
+        <a href="#approach" class="flex items-center gap-3 text-paper/80 hover:text-paper">Discover <span class="h-px w-10 bg-paper/60"></span></a>
+      </div>
+    </div>
+  </section>
+
+  {# Statement + pillars #}
+  <section id="approach" class="px-6 py-28 lg:px-12 lg:py-40">
+    <div class="mx-auto max-w-[1180px]">
+      <div class="mx-auto max-w-4xl text-center">
+        <p class="ornament justify-center"><span class="eyebrow">Hospitality, extended</span></p>
+        <h2 class="mt-10 font-serif text-[clamp(2.25rem,4.6vw,4rem)] font-light leading-[1.12] text-ink">
+          For families who plan in generations, not checklists—<em class="text-burgundy">a concierge that listens before it answers.</em>
+        </h2>
+      </div>
+      <div class="mt-24 grid border-t border-hairline md:grid-cols-3">
+        {% for numeral, title, copy in pillars %}
+        <article class="px-2 py-12 md:px-10 {% if not forloop.first %}border-t border-hairline md:border-l md:border-t-0{% endif %}">
+          <span class="font-serif text-2xl italic text-gold">{{ numeral }}.</span>
+          <h3 class="mt-6 font-serif text-3xl font-normal text-ink">{{ title }}</h3>
+          <p class="mt-4 text-[15px] font-light leading-7 text-charcoal/70">{{ copy }}</p>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# Journey, editorial split #}
+  <section class="bg-paper px-6 py-28 lg:px-12 lg:py-36">
+    <div class="mx-auto grid max-w-[1180px] items-center gap-16 lg:grid-cols-[.85fr_1fr] lg:gap-24">
+      <div class="relative mx-auto w-full max-w-[440px]">
+        <div class="arch relative aspect-[3/4] overflow-hidden">
+          <img src="{% static 'images/wedding-hero.jpg' %}" alt="A couple beneath a floral mandap" loading="lazy" class="absolute inset-0 h-full w-full scale-[1.9] object-cover object-[71%_62%]">
+        </div>
+        <div class="arch pointer-events-none absolute -inset-4 border border-gold/30"></div>
+        <p class="absolute -bottom-10 left-0 right-0 text-center font-serif text-sm italic text-charcoal/50">Rajasthan, imagined — an original AI-generated visual</p>
+      </div>
+      <div>
+        <p class="eyebrow text-gold">The journey of an enquiry</p>
+        <h2 class="mt-6 font-serif text-[clamp(2.25rem,4vw,3.5rem)] font-light leading-[1.05] text-ink">From a first hello to a prepared introduction.</h2>
+        <ol class="mt-12">
+          {% for step, copy in journey %}
+          <li class="grid grid-cols-[3.5rem_1fr] gap-4 border-t border-hairline py-6 last:border-b">
+            <span class="font-serif text-xl italic text-gold">0{{ forloop.counter }}</span>
+            <div>
+              <h3 class="text-[12px] font-medium uppercase tracking-wide2 text-ink">{{ step }}</h3>
+              <p class="mt-2 text-[15px] font-light leading-7 text-charcoal/70">{{ copy }}</p>
+            </div>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  {# Destinations #}
+  <section id="destinations" class="relative bg-ink px-6 py-28 text-paper lg:px-12 lg:py-36">
+    <div class="relative mx-auto max-w-[1280px]">
+      <div class="mb-16 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+        <div>
+          <p class="eyebrow text-champagne">Begin with a feeling</p>
+          <h2 class="mt-6 font-serif text-[clamp(2.5rem,5vw,4.5rem)] font-light leading-none">Where will your story unfold?</h2>
+        </div>
+        <p class="max-w-sm text-[15px] font-light leading-7 text-paper/60">Choose a setting and the concierge will talk you through its atmosphere, scale and seasons.</p>
+      </div>
+      <div class="grid gap-12 lg:grid-cols-[1fr_.9fr] lg:gap-20" data-destinations>
+        <ol class="border-t border-paper/15">
+          {% for d in destinations %}
+          <li class="border-b border-paper/15" data-destination data-active="{% if forloop.first %}true{% else %}false{% endif %}" data-position="{{ d.position }}" data-city="{{ d.city }}" data-region="{{ d.region }}">
+            <button type="button" data-ask="Tell me about planning a wedding in {{ d.city }}." class="group/dest grid w-full grid-cols-[3rem_1fr_auto] items-baseline gap-4 py-7 text-left sm:py-8">
+              <span class="font-serif text-lg italic text-paper/35 transition [[data-active=true]_&]:text-champagne">0{{ forloop.counter }}</span>
+              <span>
+                <span class="block font-serif text-4xl font-light text-paper/55 transition duration-500 sm:text-5xl [[data-active=true]_&]:translate-x-2 [[data-active=true]_&]:text-paper">{{ d.city }}</span>
+                <span class="mt-3 block max-h-0 max-w-md overflow-hidden text-sm leading-6 text-paper/55 opacity-0 transition-all duration-500 [[data-active=true]_&]:max-h-20 [[data-active=true]_&]:opacity-100">{{ d.note }}</span>
+              </span>
+              <span class="hidden items-center gap-2 text-[10px] font-medium uppercase tracking-wide2 text-paper/30 transition sm:flex [[data-active=true]_&]:text-champagne">
+                Ask {% icon "arrow-right" 13 "transition group-hover/dest:translate-x-1" %}
+              </span>
+            </button>
+          </li>
+          {% endfor %}
+        </ol>
+        <div class="relative hidden lg:block">
+          <div class="arch relative h-[560px] overflow-hidden">
+            <img src="{% static 'images/wedding-hero.jpg' %}" alt="" loading="lazy" data-destination-image class="absolute inset-0 h-full w-full scale-[1.35] object-cover transition-[object-position] duration-[1400ms] ease-out" style="object-position: {{ destinations.0.position }}">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-8 text-center">
+              <p class="eyebrow text-champagne" data-destination-region>{{ destinations.0.region }}</p>
+              <p class="mt-2 font-serif text-3xl font-light italic text-paper" data-destination-city>{{ destinations.0.city }}</p>
+            </div>
+          </div>
+          <div class="arch pointer-events-none absolute -inset-3 border border-champagne/25"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# Try the concierge #}
+  <section id="concierge" class="px-6 py-28 lg:px-12 lg:py-36">
+    <div class="mx-auto grid max-w-[1180px] gap-16 lg:grid-cols-[.9fr_1.1fr] lg:items-start">
+      <div class="lg:sticky lg:top-32">
+        <p class="eyebrow text-gold">An open invitation</p>
+        <h2 class="mt-6 font-serif text-[clamp(2.5rem,5vw,4.25rem)] font-light leading-[1.02] text-ink">Try a real conversation.</h2>
+        <p class="mt-7 max-w-md text-[15px] font-light leading-7 text-charcoal/70">Choose a sample question—or write your own—and watch the concierge recognise intent, ask a considered follow-up and prepare a handoff. Each handed-off conversation appears in the staff workspace.</p>
+        <div class="mt-10 flex flex-wrap gap-4">
+          <button type="button" data-ask class="btn-dark">Open the concierge {% icon "arrow-right" 15 %}</button>
+          <a href="{% url 'crm:inbox' %}" class="btn-outline">See the team inbox</a>
+        </div>
+      </div>
+      <div class="border-t border-ink/80">
+        <p class="flex items-center justify-between py-5 text-[11px] uppercase tracking-wide2 text-charcoal/55"><span>Sample questions</span><span>Six routes</span></p>
+        {% for q in prompts %}
+        <button type="button" data-ask="{{ q }}" class="group flex w-full items-center justify-between gap-6 border-t border-hairline py-6 text-left">
+          <span class="font-serif text-2xl font-light text-ink transition group-hover:translate-x-2 group-hover:text-burgundy">“{{ q }}”</span>
+          {% icon "arrow-up-right" 18 "shrink-0 text-gold transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" %}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# Footer #}
+  <footer class="bg-umber px-6 pb-10 pt-20 text-paper lg:px-12">
+    <div class="mx-auto max-w-[1280px]">
+      <div class="flex flex-col items-center text-center">
+        {% include "partials/brand.html" with inverse=True centered=True %}
+        <p class="mt-10 max-w-2xl font-serif text-2xl font-light italic leading-snug text-paper/80">“The most memorable celebrations are remembered for how every guest was made to feel—beginning with the very first message.”</p>
+      </div>
+      <div class="mt-20 grid gap-10 border-t border-paper/15 pt-10 text-[13px] font-light leading-6 text-paper/55 md:grid-cols-3">
+        <div><p class="eyebrow mb-3 text-champagne">About this concept</p>An independent portfolio concept exploring how an AI concierge might support a luxury wedding-planning house. Not affiliated with, endorsed by or operated by Indian Wedding Planners.</div>
+        <div><p class="eyebrow mb-3 text-champagne">How the demo works</p>A Django application with a deterministic, rule-based concierge engine written in Python. No live team is involved, and all people and leads are fictional.</div>
+        <div class="md:text-right"><p class="eyebrow mb-3 text-champagne">Explore</p>
+          <a href="{% url 'crm:overview' %}" class="inline-flex items-center gap-2 text-paper/80 hover:text-paper">Staff workspace {% icon "arrow-up-right" 14 %}</a><br>
+          <a href="#concierge" class="inline-flex items-center gap-2 text-paper/80 hover:text-paper">Try the concierge {% icon "arrow-up-right" 14 %}</a>
+        </div>
+      </div>
+      <p class="mt-14 text-center text-[10px] uppercase tracking-luxe text-paper/35">Independent concept demonstration · Not an official IWP deployment</p>
+    </div>
+  </footer>
+
+  {% include "concierge/_chat.html" %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/site.js' %}" defer></script>
+<script src="{% static 'js/concierge.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Workspace" }} · IWP Staff Workspace{% endblock %}
+{% block body_class %}bg-ivory{% if embed %} embed{% endif %}{% endblock %}
+
+{% block body %}
+{% if embed %}
+<main class="p-3">{% block embed_content %}{% endblock %}</main>
+{% else %}
+<div class="min-h-screen bg-ivory">
+  <aside data-sidebar data-open="false" class="fixed inset-y-0 left-0 z-50 flex w-[264px] -translate-x-full flex-col bg-ink px-5 py-7 text-paper transition-transform duration-300 data-[open=true]:translate-x-0 lg:translate-x-0">
+    <div class="relative flex items-center justify-between px-2">
+      {% include "partials/brand.html" with inverse=True %}
+      <button type="button" class="lg:hidden" aria-label="Close navigation" data-sidebar-close>{% icon "x" 20 %}</button>
+    </div>
+    <p class="relative mt-12 px-3 text-[10px] uppercase tracking-[.28em] text-paper/35">Workspace</p>
+    <nav class="relative mt-3 space-y-0.5">
+      {% for key, label, url_name, icon_name in workspace_links %}
+      {% url url_name as href %}
+      <a href="{{ href }}" class="relative flex items-center gap-3 rounded-md px-3 py-2.5 text-[14px] transition {% if nav == key %}bg-paper/[.08] text-paper{% else %}text-paper/55 hover:bg-paper/[.04] hover:text-paper{% endif %}">
+        {% if nav == key %}<span class="absolute -left-5 top-1/2 h-5 w-[2px] -translate-y-1/2 bg-champagne"></span>{% icon icon_name 17 "text-champagne" 1.5 %}{% else %}{% icon icon_name 17 "" 1.5 %}{% endif %}
+        {{ label }}
+        {% if key == "inbox" and open_count %}<span class="ml-auto rounded-full bg-champagne/15 px-2 py-0.5 text-[11px] text-champagne">{{ open_count }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </nav>
+    <div class="relative mt-8 rounded-lg border border-paper/10 p-4">
+      <p class="flex items-center gap-2 text-[13px] text-paper/85"><span class="relative flex h-2 w-2"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span><span class="relative h-2 w-2 rounded-full bg-emerald-400"></span></span>Concierge is live</p>
+      <p class="mt-1.5 text-[12px] leading-5 text-paper/45">{% if ai_enabled %}Rules-led routing, with Gemini answering open questions.{% else %}Answering on the public site in rules-only mode.{% endif %}</p>
+    </div>
+    <div class="relative mt-auto space-y-1">
+      <a href="{% url 'concierge:home' %}" class="flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] text-paper/55 hover:bg-paper/[.04] hover:text-paper">{% icon "arrow-up-right" 16 "" 1.5 %}View public site</a>
+      <a href="{% url 'crm:demo' %}" class="flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] text-champagne/90 hover:bg-paper/[.04] hover:text-champagne">{% icon "sparkles" 16 "" 1.5 %}Live demo (split view)</a>
+      <form method="post" action="{% url 'crm:reset' %}">{% csrf_token %}
+        <button class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[13px] text-paper/55 hover:bg-paper/[.04] hover:text-paper">{% icon "rotate-ccw" 16 "" 1.5 %}Reset demo data</button>
+      </form>
+      <p class="border-t border-paper/10 px-3 pt-5 text-[11px] leading-5 text-paper/35">Concept demonstration. Django + PostgreSQL-ready; all people and leads are fictional.</p>
+    </div>
+  </aside>
+  <button type="button" aria-label="Close navigation" data-sidebar-scrim class="fixed inset-0 z-40 hidden bg-ink/40 lg:hidden"></button>
+
+  <div class="lg:pl-[264px]">
+    <header class="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-hairline bg-ivory/85 px-5 backdrop-blur-xl sm:px-10">
+      <div class="flex items-center gap-4">
+        <button type="button" data-sidebar-open aria-label="Open navigation" class="rounded-md p-2 hover:bg-linen lg:hidden">{% icon "menu" 20 %}</button>
+        <p class="text-[11px] uppercase tracking-[.24em] text-charcoal/45"><span class="hidden sm:inline">Staff workspace&nbsp;&nbsp;/&nbsp;&nbsp;</span><span class="text-ink">{{ page_title }}</span></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden text-right sm:block"><p class="text-[13px] font-medium text-ink">{{ user.get_full_name|default:user.username }}</p><p class="text-[11px] text-charcoal/50">{{ user.email }}</p></div>
+        <span class="grid h-10 w-10 place-items-center rounded-full bg-ink font-serif text-lg text-champagne">{{ user.get_full_name|default:user.username|initials }}</span>
+        <form method="post" action="{% url 'crm:logout' %}">{% csrf_token %}
+          <button class="grid h-10 w-10 place-items-center rounded-full text-charcoal/50 transition hover:bg-linen hover:text-ink" aria-label="Sign out" title="Sign out">{% icon "log-out" 17 "" 1.5 %}</button>
+        </form>
+      </div>
+    </header>
+    <main class="px-4 py-8 sm:px-10 sm:py-10">
+      {% if messages %}{% for message in messages %}
+      <div data-toast class="mb-6 flex items-center gap-2 rounded-md border border-sage/30 bg-sage/10 px-4 py-3 text-[13px] text-ink">{% icon "check" 15 "text-sage" %}{{ message }}</div>
+      {% endfor %}{% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}<script src="{% static 'js/staff.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,107 @@
+{# Floating concierge. Behaviour lives in static/js/concierge.js; replies come from concierge/engine.py. #}
+<div id="concierge-widget" data-state-url="{% url 'concierge:chat-state' %}" data-message-url="{% url 'concierge:chat-message' %}" data-reset-url="{% url 'concierge:chat-reset' %}" data-live-url="{% url 'concierge:chat-live' %}" data-typing-url="{% url 'concierge:chat-typing' %}">
+  <button type="button" data-chat-open aria-label="Open the wedding concierge" class="group fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-ink p-2.5 text-paper shadow-soft ring-1 ring-champagne/30 transition duration-300 hover:-translate-y-0.5 hover:bg-burgundy data-[hidden=true]:pointer-events-none data-[hidden=true]:translate-y-2 data-[hidden=true]:opacity-0 sm:pr-6">
+    <span class="relative grid h-10 w-10 place-items-center rounded-full border border-champagne/40">
+      {% monogram "h-6 w-6 text-champagne" %}
+      <span class="absolute right-0 top-0 h-2.5 w-2.5 rounded-full border-2 border-ink bg-emerald-400"></span>
+      <span data-unread class="absolute -left-1.5 -top-1.5 hidden h-5 min-w-5 place-items-center rounded-full bg-burgundy px-1 text-[11px] font-medium text-paper ring-2 ring-ivory"></span>
+    </span>
+    <span class="hidden text-left leading-tight sm:block">
+      <span class="block font-serif text-lg">Concierge</span>
+      <span class="block text-[10px] uppercase tracking-wide2 text-paper/60">Ask us anything</span>
+    </span>
+  </button>
+
+  <div data-chat-overlay class="fixed inset-0 z-50 hidden animate-fade-in items-end justify-end bg-ink/30 backdrop-blur-[2px] sm:p-6">
+    <section role="dialog" aria-modal="true" aria-label="IWP wedding concierge" class="flex h-[94dvh] w-full animate-rise-in flex-col overflow-hidden bg-paper shadow-soft sm:h-[720px] sm:max-h-[calc(100dvh-3rem)] sm:max-w-[430px] sm:rounded-xl">
+      <header class="relative bg-ink px-6 pb-5 pt-6 text-paper">
+        <button type="button" data-chat-close aria-label="Close concierge" class="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full text-paper/70 transition hover:bg-paper/10 hover:text-paper">{% icon "x" 18 %}</button>
+        <div class="relative flex items-center gap-4">
+          <span data-chat-avatar class="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-champagne/40 font-serif text-xl text-champagne">{% monogram "h-7 w-7 text-champagne" %}</span>
+          <div class="min-w-0">
+            <h2 data-chat-title class="truncate font-serif text-[26px] font-normal leading-none">The Concierge</h2>
+            <p class="mt-1.5 flex items-center gap-2 text-[11px] text-paper/60"><span data-chat-dot class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"></span><span data-chat-status>Online · English, हिन्दी, Hinglish</span></p>
+          </div>
+        </div>
+        <div class="relative mt-5 flex items-center justify-between border-t border-paper/15 pt-4 text-[10px] uppercase tracking-wide2">
+          <span data-chat-route class="text-paper/50">Routing to</span>
+          <span data-chat-department class="animate-fade-in text-champagne">General Support</span>
+        </div>
+      </header>
+
+      <div data-chat-log class="scrollbar-thin flex-1 space-y-5 overflow-y-auto bg-ivory/40 px-5 py-6" aria-live="polite"></div>
+
+      <footer class="border-t border-hairline bg-paper p-4">
+        <form data-chat-form class="flex items-center gap-2 rounded-full border border-hairline bg-ivory/50 py-1.5 pl-5 pr-1.5 transition focus-within:border-gold focus-within:bg-paper">
+          <input data-chat-input autocomplete="off" maxlength="1000" class="min-w-0 flex-1 bg-transparent py-2 text-[14px] outline-none placeholder:text-charcoal/40" placeholder="Write in English, हिन्दी or Hinglish…" aria-label="Message">
+          <button data-chat-send disabled class="grid h-10 w-10 place-items-center rounded-full bg-ink text-paper transition hover:bg-burgundy disabled:opacity-30" aria-label="Send message">{% icon "send" 16 %}</button>
+        </form>
+        <button type="button" data-chat-restart class="btn-dark hidden w-full">Start a new conversation</button>
+        <p class="mt-3 text-center text-[10px] uppercase tracking-wide2 text-charcoal/40">Concept demo · please don’t share sensitive details</p>
+      </footer>
+    </section>
+  </div>
+
+  <template data-tpl="assistant">
+    <div class="flex animate-rise-in gap-3">
+      <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-gold/30 bg-paper">{% monogram "h-4 w-4 text-gold" %}</span>
+      <div class="max-w-[84%] rounded-2xl rounded-tl-sm border border-hairline bg-paper px-4 py-3 text-[14px] leading-relaxed text-charcoal shadow-card">
+        <p data-text class="whitespace-pre-line"></p>
+        <p data-ai class="mt-2 hidden items-center gap-1.5 border-t border-hairline pt-2 text-[10px] uppercase tracking-wide2 text-gold">{% icon "sparkles" 11 %}AI-assisted · a planner will confirm details</p>
+      </div>
+    </div>
+  </template>
+  <template data-tpl="visitor">
+    <div class="flex animate-rise-in justify-end">
+      <div data-text class="max-w-[80%] rounded-2xl rounded-tr-sm bg-burgundy px-4 py-3 text-[14px] leading-relaxed text-paper"></div>
+    </div>
+  </template>
+  <template data-tpl="agent">
+    <div class="flex animate-rise-in gap-3">
+      <span data-initials class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-burgundy font-serif text-[13px] text-paper"></span>
+      <div class="max-w-[84%] rounded-2xl rounded-tl-sm border border-burgundy/20 bg-paper px-4 py-3 text-[14px] leading-relaxed text-charcoal shadow-card">
+        <p data-author class="mb-1 text-[10px] uppercase tracking-wide2 text-burgundy"></p>
+        <p data-text class="whitespace-pre-line"></p>
+      </div>
+    </div>
+  </template>
+  <template data-tpl="system">
+    <div class="flex animate-fade-in items-center gap-3 text-[10px] uppercase tracking-wide2 text-charcoal/45">
+      <span class="h-px flex-1 bg-hairline"></span><span data-text class="text-center"></span><span class="h-px flex-1 bg-hairline"></span>
+    </div>
+  </template>
+  <template data-tpl="agent-typing">
+    <div class="flex gap-3" aria-label="A planner is typing">
+      <span data-initials class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-burgundy font-serif text-[13px] text-paper"></span>
+      <div class="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-burgundy/20 bg-paper px-4 py-4">
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-burgundy/60"></span>
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-burgundy/60 [animation-delay:140ms]"></span>
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-burgundy/60 [animation-delay:280ms]"></span>
+      </div>
+    </div>
+  </template>
+  <template data-tpl="typing">
+    <div class="flex gap-3" aria-label="Concierge is typing">
+      <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-gold/30 bg-paper">{% monogram "h-4 w-4 text-gold" %}</span>
+      <div class="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-hairline bg-paper px-4 py-4">
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70"></span>
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70 [animation-delay:140ms]"></span>
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70 [animation-delay:280ms]"></span>
+      </div>
+    </div>
+  </template>
+  <template data-tpl="quick-actions">
+    <div class="flex flex-wrap gap-2 pl-11"></div>
+  </template>
+  <template data-tpl="quick-action">
+    <button type="button" class="rounded-full border border-ink/15 bg-paper px-3.5 py-2 text-[12px] text-charcoal transition hover:border-burgundy hover:bg-burgundy hover:text-paper"></button>
+  </template>
+  <template data-tpl="handoff">
+    <div class="ml-11 animate-rise-in rounded-lg border border-gold/40 bg-paper p-4">
+      <p class="eyebrow text-gold">Handoff prepared</p>
+      <p data-ticket class="mt-2 font-serif text-2xl text-ink"></p>
+      <p class="mt-1 text-[12px] text-charcoal/60"><span data-department></span> · stay here, a planner will reply in this chat</p>
+      <a data-inbox href="#" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide2 text-burgundy hover:text-ink">View in staff inbox {% icon "arrow-up-right" 13 %}</a>
+    </div>
+  </template>
+</div>

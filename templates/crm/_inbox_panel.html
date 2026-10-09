@@ -1,0 +1,95 @@
+{# Swapped as a whole by HTMX after every action, so list, thread and sidebar stay consistent. #}
+<div id="inbox-panel" class="panel grid overflow-hidden lg:h-[calc(100dvh-240px)] lg:min-h-[640px] lg:grid-cols-[320px_1fr_300px] embed:md:h-[calc(100dvh-24px)] embed:md:min-h-0 embed:md:grid-cols-[220px_1fr_230px]">
+  {# Conversation list #}
+  <div class="flex min-h-0 flex-col border-b border-hairline lg:border-b-0 lg:border-r embed:md:border-b-0 embed:md:border-r">
+    <div class="flex items-center justify-between border-b border-hairline px-5 py-4 text-[11px] uppercase tracking-[.2em] text-charcoal/50">
+      <span id="inbox-count">{{ conversations|length }} conversation{{ conversations|length|pluralize }}</span>
+      <span class="flex items-center gap-1.5 normal-case tracking-normal text-sage"><span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>Live</span>
+    </div>
+    <div id="inbox-list" class="scrollbar-thin max-h-[360px] flex-1 overflow-y-auto lg:max-h-none embed:md:max-h-none"
+         hx-get="{% url 'crm:inbox' %}?partial=list&c={{ selected.pk|default:'' }}&department={{ department|urlencode }}&status={{ status }}" hx-trigger="every 4s" hx-swap="innerHTML">
+      {% include "crm/_inbox_list.html" %}
+    </div>
+  </div>
+
+  {% if selected %}
+  {% url 'crm:conversation-action' selected.pk as action_url %}
+  {# Thread #}
+  <div class="flex min-h-[520px] min-w-0 flex-col border-b border-hairline lg:min-h-0 lg:border-b-0 lg:border-r embed:md:min-h-0 embed:md:border-b-0 embed:md:border-r">
+    <div class="flex items-center justify-between border-b border-hairline px-6 py-4">
+      <div><p class="font-serif text-2xl text-ink">{{ selected.customer }}</p><p class="text-[12px] text-charcoal/50">{{ selected.ticket }} · {{ selected.department }}</p></div>
+      <span data-status-pill="{{ selected.status }}" class="flex items-center gap-2 rounded-full border border-hairline px-3 py-1 text-[12px] text-charcoal/70"><span data-status-dot class="h-1.5 w-1.5 rounded-full {{ selected.status|status_dot }}"></span><span data-status-label>{{ selected.get_status_display }}</span></span>
+    </div>
+    <div data-thread data-updates-url="{% url 'crm:thread-updates' selected.pk %}" data-cursor="{{ selected.messages.all.last.pk|default:0 }}" class="scrollbar-thin flex-1 space-y-4 overflow-y-auto bg-ivory/40 px-6 py-6">
+      {% include "crm/_messages.html" with messages_list=selected.messages.all %}
+    </div>
+    <p data-visitor-typing class="hidden items-center gap-2 border-t border-hairline bg-ivory/40 px-6 py-2 text-[12px] italic text-charcoal/55"><span class="flex gap-1"><span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70"></span><span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70 [animation-delay:140ms]"></span><span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70 [animation-delay:280ms]"></span></span>{{ selected.customer }} is typing…</p>
+    <div class="border-t border-hairline p-4">
+      {% if selected.assigned_to %}
+      {% if ai_enabled %}
+      <form method="post" action="{{ action_url }}" hx-post="{{ action_url }}" hx-target="#inbox-panel" hx-swap="outerHTML" hx-disabled-elt="find button" class="mb-3 flex items-center justify-between gap-3">
+        {% csrf_token %}<input type="hidden" name="action" value="draft">{% include "crm/_filter_fields.html" %}
+        <p class="text-[12px] text-charcoal/50">{% if draft %}AI draft below. Review and edit before sending.{% elif draft_error %}The AI draft is unavailable right now. Please write your reply.{% else %}Need a head start?{% endif %}</p>
+        <button class="flex items-center gap-1.5 rounded-full border border-gold/40 px-3 py-1.5 disabled:animate-pulse text-[11px] uppercase tracking-[.14em] text-gold transition hover:bg-gold hover:text-paper">{% icon "sparkles" 13 %}{% if draft %}Redraft{% else %}Draft with AI{% endif %}</button>
+      </form>
+      {% endif %}
+      <form method="post" action="{{ action_url }}" hx-post="{{ action_url }}" hx-target="#inbox-panel" hx-swap="outerHTML" class="flex items-end gap-2 rounded-2xl border border-hairline bg-paper py-1.5 pl-5 pr-1.5 focus-within:border-gold">
+        {% csrf_token %}<input type="hidden" name="action" value="reply">{% include "crm/_filter_fields.html" %}
+        <textarea name="text" required maxlength="2000" rows="{% if draft %}4{% else %}1{% endif %}" data-reply data-typing-url="{% url 'crm:staff-typing' selected.pk %}" placeholder="Reply to {{ selected.customer }}…" aria-label="Reply" class="min-w-0 flex-1 resize-none bg-transparent py-2 text-[14px] leading-6 outline-none placeholder:text-charcoal/40">{{ draft|default:'' }}</textarea>
+        <button aria-label="Send reply" class="grid h-10 w-10 place-items-center rounded-full bg-ink text-paper transition hover:bg-burgundy">{% icon "send" 16 %}</button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ action_url }}" hx-post="{{ action_url }}" hx-target="#inbox-panel" hx-swap="outerHTML" class="flex items-center justify-between gap-3 rounded-md border border-dashed border-hairline px-4 py-3 text-[13px] text-charcoal/55">
+        {% csrf_token %}<input type="hidden" name="action" value="take_over">{% include "crm/_filter_fields.html" %}
+        <span class="flex items-center gap-2">{% icon "user-check" 15 %}Take over this conversation to reply.</span>
+        <button class="text-[12px] uppercase tracking-[.14em] text-burgundy hover:text-ink">Take over</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Context sidebar #}
+  <aside class="scrollbar-thin min-h-0 overflow-y-auto p-6 embed:p-4">
+    <div class="rounded-md border border-gold/30 bg-ivory/60 p-4">
+      <p class="flex items-center gap-2 text-[11px] uppercase tracking-[.18em] text-gold">{% icon "sparkles" 13 %}{% if selected.summary_ai %}AI summary · Gemini{% else %}Concierge summary{% endif %}</p>
+      <p class="mt-3 text-[14px] leading-6 text-charcoal/80">{{ selected.summary }}</p>
+    </div>
+    {% if selected.routing_reason %}
+    <div class="mt-4 rounded-md border border-hairline p-4">
+      <p class="flex items-center justify-between text-[11px] uppercase tracking-[.18em] text-charcoal/50">
+        <span>Routed to {{ selected.department }}</span>
+        <span class="rounded-full bg-linen px-2 py-0.5 normal-case tracking-normal text-charcoal/70">{% if selected.routed_by == "ai" %}{% icon "sparkles" 11 "inline text-gold" %} Gemini{% elif selected.routed_by == "visitor" %}Visitor’s choice{% else %}Rules{% endif %}{% if selected.routing_confidence is not None and selected.routed_by != "visitor" %} · {% widthratio selected.routing_confidence 1 100 %}%{% endif %}</span>
+      </p>
+      <p class="mt-2 text-[13px] leading-5 text-charcoal/70">{{ selected.routing_reason }}</p>
+    </div>
+    {% endif %}
+
+    <p class="mt-7 text-[11px] uppercase tracking-[.2em] text-charcoal/50">Owner</p>
+    <form method="post" action="{{ action_url }}" hx-post="{{ action_url }}" hx-target="#inbox-panel" hx-swap="outerHTML">
+      {% csrf_token %}<input type="hidden" name="action" value="toggle_owner">{% include "crm/_filter_fields.html" %}
+      <button class="mt-3 flex w-full items-center justify-between rounded-md border border-hairline p-3 text-left transition hover:border-gold">
+        <span><span class="block text-[14px] text-ink">{{ selected.assigned_to.get_full_name|default:"Unassigned" }}</span><span class="text-[12px] text-charcoal/50">{% if selected.assigned_to %}Click to release{% else %}Click to assign yourself{% endif %}</span></span>
+        {% if selected.assigned_to %}{% icon "check" 16 "text-sage" %}{% else %}{% icon "user-check" 16 "text-burgundy" %}{% endif %}
+      </button>
+    </form>
+
+    <p class="mt-7 text-[11px] uppercase tracking-[.2em] text-charcoal/50">Status</p>
+    <form method="post" action="{{ action_url }}" hx-post="{{ action_url }}" hx-target="#inbox-panel" hx-swap="outerHTML" class="mt-3 grid grid-cols-3 gap-1 rounded-md bg-linen/70 p-1">
+      {% csrf_token %}<input type="hidden" name="action" value="status">{% include "crm/_filter_fields.html" %}
+      {% for value, label in statuses %}
+      <button name="value" value="{{ value }}" data-status-button="{{ value }}" class="rounded py-2 text-[12px] transition {% if selected.status == value %}bg-paper text-ink shadow-card{% else %}text-charcoal/55 hover:text-ink{% endif %}">{{ label }}</button>
+      {% endfor %}
+    </form>
+
+    <p class="mt-7 text-[11px] uppercase tracking-[.2em] text-charcoal/50">Internal note</p>
+    <form method="post" action="{{ action_url }}" hx-post="{{ action_url }}" hx-target="#inbox-panel" hx-swap="outerHTML">
+      {% csrf_token %}<input type="hidden" name="action" value="note">{% include "crm/_filter_fields.html" %}
+      <textarea name="note" maxlength="2000" placeholder="Add context for the team…" class="mt-3 h-28 w-full resize-none rounded-md border border-hairline bg-paper p-3 text-[13px] leading-5 outline-none focus:border-gold">{{ selected.note }}</textarea>
+      <button class="btn-outline mt-2 w-full py-3">{% if note_saved %}{% icon "check" 14 %}Saved{% else %}Save note{% endif %}</button>
+    </form>
+    <p class="mt-6 text-center text-[11px] text-charcoal/40">Demo workspace · replies are stored, never sent</p>
+  </aside>
+  {% else %}
+  <div class="col-span-2 grid place-items-center p-16 text-[14px] text-charcoal/50">No conversations match these filters.</div>
+  {% endif %}
+</div>

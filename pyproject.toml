@@ -1,0 +1,26 @@
+[project]
+name = "iwp-ai-wedding-concierge"
+version = "2.0.0"
+description = "Concept demo: a multilingual AI wedding concierge and staff workspace, built with Django."
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore:No directory at:UserWarning"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py312"
+extend-exclude = ["legacy-nextjs", "*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "DJ", "SIM", "RUF"]
+ignore = [
+    "E501",    # Line length is handled by `ruff format`; long strings are SVG paths and user-facing copy.
+    "RUF001",  # Typographic quotes and dashes are intentional in user-facing copy.
+    "RUF003",
+    "RUF012",  # Django Meta/class attributes are conventionally plain lists.
+]

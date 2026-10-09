@@ -1,0 +1,16 @@
+{# Conversation list items. Polled every few seconds (innerHTML swap keeps the scroll position). #}
+{% if request.GET.partial == "list" %}<span id="inbox-count" hx-swap-oob="true">{{ conversations|length }} conversation{{ conversations|length|pluralize }}</span>{% endif %}
+{% for c in conversations %}
+<a href="?c={{ c.pk }}&department={{ department|urlencode }}&status={{ status }}"
+   hx-get="{% url 'crm:inbox' %}?c={{ c.pk }}&department={{ department|urlencode }}&status={{ status }}" hx-target="#inbox-panel" hx-swap="outerHTML" hx-push-url="{% if embed %}false{% else %}true{% endif %}"
+   class="relative block w-full border-b border-hairline px-5 py-4 text-left transition {% if c == selected %}bg-ivory{% else %}hover:bg-ivory/50{% endif %}">
+  {% if c == selected %}<span class="absolute inset-y-0 left-0 w-[2px] bg-burgundy"></span>{% endif %}
+  <div class="flex items-center justify-between gap-2"><span class="flex items-center gap-2 truncate text-[14px] font-medium text-ink"><span class="h-1.5 w-1.5 shrink-0 rounded-full {{ c.status|status_dot }}"></span>{{ c.customer }}</span><span class="shrink-0 text-[11px] text-charcoal/45">{{ c.updated_at|ago }}</span></div>
+  <p class="mt-1 truncate text-[13px] {% if c.awaiting_reply %}font-medium text-ink{% else %}text-charcoal/55{% endif %}">{{ c.latest_visitor_text }}</p>
+  <div class="mt-2.5 flex items-center gap-2">
+    <span class="text-[11px] uppercase tracking-[.12em] text-gold">{{ c.department }}</span>
+    {% if c.priority == "high" %}<span class="rounded-full bg-burgundy/[.08] px-2 py-0.5 text-[10px] uppercase tracking-wider text-burgundy">Priority</span>{% endif %}
+    {% if c.awaiting_reply %}<span class="ml-auto flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-burgundy"><span class="h-1.5 w-1.5 animate-pulse rounded-full bg-burgundy"></span>Awaiting reply</span>{% endif %}
+  </div>
+</a>
+{% endfor %}

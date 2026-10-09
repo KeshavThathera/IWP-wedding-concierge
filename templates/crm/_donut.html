@@ -1,0 +1,26 @@
+{# Department donut. Geometry comes from crm.analytics.department_mix(); hover is handled by staff.js. #}
+<div data-donut class="mt-6 grid items-center gap-8 sm:grid-cols-[180px_1fr]">
+  <div class="relative mx-auto h-[180px] w-[180px]">
+    <svg viewBox="0 0 180 180" class="-rotate-90">
+      <circle cx="90" cy="90" r="70" fill="none" stroke="#EFE8DC" stroke-width="18"/>
+      {% for s in segments %}
+      <circle data-segment="{{ forloop.counter0 }}" cx="90" cy="90" r="70" fill="none" stroke="{{ s.color }}" stroke-width="18"
+        stroke-dasharray="{{ s.dash|stringformat:'s' }} 1000" stroke-dashoffset="{{ s.offset|stringformat:'s' }}" class="cursor-pointer transition-all duration-300"/>
+      {% endfor %}
+    </svg>
+    <div class="pointer-events-none absolute inset-0 grid place-content-center text-center">
+      <p data-donut-value data-default="{{ segment_total }}" class="font-serif text-4xl font-light text-ink">{{ segment_total }}</p>
+      <p data-donut-label data-default="Conversations" class="mt-0.5 max-w-[100px] text-[10px] uppercase leading-4 tracking-[.16em] text-charcoal/50">Conversations</p>
+    </div>
+  </div>
+  <ul class="space-y-1">
+    {% for s in segments %}
+    <li data-segment="{{ forloop.counter0 }}" data-name="{{ s.name }}" data-value="{{ s.value }}" class="flex items-center gap-3 rounded-md px-2 py-1.5 text-[13px] transition data-[active=true]:bg-linen/70">
+      <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background: {{ s.color }}"></span>
+      <span class="flex-1 truncate text-charcoal/80">{{ s.name }}</span>
+      <span class="tabular-nums text-charcoal/50">{{ s.percent }}%</span>
+      <span class="w-6 text-right font-medium tabular-nums text-ink">{{ s.value }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

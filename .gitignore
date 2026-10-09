@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+db.sqlite3
+staticfiles/
+.env
+
+# Node (asset tooling only)
+node_modules/
+
+# Legacy Next.js build output
+.next/
+legacy-nextjs/node_modules/
+legacy-nextjs/.next/
+*.tsbuildinfo
+*.log
+
+# Local tooling
+.claude/

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Live handoff demo · IWP Staff Workspace{% endblock %}
+{% block body_class %}bg-ink{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen flex-col bg-ink text-paper">
+  <header class="flex flex-wrap items-center justify-between gap-4 border-b border-paper/10 px-6 py-4">
+    <div class="flex items-center gap-6">
+      {% include "partials/brand.html" with inverse=True %}
+      <span class="hidden h-8 w-px bg-paper/15 md:block"></span>
+      <div class="hidden md:block">
+        <p class="eyebrow text-champagne">Live handoff demo</p>
+        <p class="mt-1 text-[13px] text-paper/60">The visitor’s phone and the team inbox, side by side, both live.</p>
+      </div>
+    </div>
+    <ol class="hidden items-center gap-5 text-[12px] text-paper/70 2xl:flex">
+      <li class="flex items-center gap-2"><span class="grid h-5 w-5 place-items-center rounded-full border border-champagne/50 font-serif text-champagne">1</span>Chat on the phone, then ask for a person</li>
+      <li class="flex items-center gap-2"><span class="grid h-5 w-5 place-items-center rounded-full border border-champagne/50 font-serif text-champagne">2</span>Open it in the inbox and <em>Take over</em></li>
+      <li class="flex items-center gap-2"><span class="grid h-5 w-5 place-items-center rounded-full border border-champagne/50 font-serif text-champagne">3</span>Reply on either side</li>
+    </ol>
+    <div class="flex items-center gap-2">
+      <button type="button" data-new-visitor class="inline-flex items-center gap-2 rounded-full border border-paper/25 px-4 py-2 text-[11px] uppercase tracking-wide2 text-paper/85 transition hover:border-champagne hover:text-champagne">{% icon "rotate-ccw" 14 %}New visitor chat</button>
+      <a href="{% url 'crm:inbox' %}" class="inline-flex items-center gap-2 rounded-full bg-paper px-4 py-2 text-[11px] uppercase tracking-wide2 text-ink transition hover:bg-champagne">Exit demo {% icon "arrow-up-right" 14 %}</a>
+    </div>
+  </header>
+
+  {# Needs a laptop-sized screen; smaller screens get a short note instead. #}
+  <main class="hidden flex-1 grid-cols-[auto_1fr] gap-6 p-6 lg:grid">
+    <section class="flex flex-col items-center">
+      <p class="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-wide2 text-paper/55"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>Visitor · public website</p>
+      <div class="relative rounded-[46px] border border-paper/15 bg-umber p-3 shadow-soft">
+        <span class="absolute left-1/2 top-3 z-10 h-6 w-28 -translate-x-1/2 rounded-b-2xl bg-umber"></span>
+        <iframe data-visitor-frame src="{% url 'concierge:home' %}?chat=open" title="Visitor view of the website" class="block h-[calc(100dvh-170px)] max-h-[844px] w-[390px] rounded-[36px] bg-ivory"></iframe>
+      </div>
+    </section>
+
+    <section class="flex min-w-0 flex-col">
+      <p class="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-wide2 text-paper/55"><span class="h-1.5 w-1.5 rounded-full bg-champagne"></span>Staff · team inbox · signed in as {{ user.get_full_name|default:user.username }}</p>
+      <div class="flex-1 overflow-hidden rounded-xl border border-paper/15 bg-ivory shadow-soft">
+        <iframe src="{% url 'crm:inbox' %}?embed=1" title="Staff team inbox" class="block h-full min-h-[calc(100dvh-170px)] w-full"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <div class="flex flex-1 items-center justify-center p-10 text-center lg:hidden">
+    <p class="max-w-sm text-[14px] leading-6 text-paper/70">The split-view demo needs a laptop or desktop screen. On a phone, open the website and the team inbox in separate tabs.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Start a fresh visitor conversation (keeps you signed in as staff) and reload the phone.
+  document.querySelector("[data-new-visitor]").addEventListener("click", async () => {
+    const token = document.cookie.split("; ").find((c) => c.startsWith("csrftoken="))?.split("=")[1] ?? "";
+    await fetch("{% url 'concierge:chat-reset' %}", { method: "POST", headers: { "X-CSRFToken": token }, credentials: "same-origin" });
+    document.querySelector("[data-visitor-frame]").contentWindow.location.reload();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+.venv
+node_modules
+legacy-nextjs
+db.sqlite3
+staticfiles
+.git
+.pytest_cache
+.ruff_cache
+__pycache__
+.env
+.claude

@@ -1,0 +1,31 @@
+# One-click deploy on Render: New + > Blueprint > select this repository.
+databases:
+  - name: iwp-concierge-db
+    plan: free
+    databaseName: iwp
+    user: iwp
+
+services:
+  - type: web
+    name: iwp-concierge
+    runtime: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false   # Render asks for the value on first deploy; leave blank for rules-only mode
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
+      - key: GEMINI_FALLBACK_MODELS
+        value: gemini-3.1-flash-lite
+      - key: DATABASE_URL
+        fromDatabase:
+          name: iwp-concierge-db
+          property: connectionString

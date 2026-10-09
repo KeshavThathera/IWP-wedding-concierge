@@ -1,0 +1,8 @@
+{# Wordmark. Pass inverse=True on dark backgrounds, centered=True for the stacked footer variant. #}
+<a href="{% url 'concierge:home' %}" data-brand class="group flex items-center gap-3 {% if centered %}flex-col gap-1.5 text-center{% endif %} {% if inverse %}text-paper{% else %}text-ink{% endif %}">
+  {% if inverse %}{% monogram "h-9 w-9 shrink-0 text-champagne" %}{% else %}{% monogram "h-9 w-9 shrink-0 text-gold" %}{% endif %}
+  <span class="whitespace-nowrap leading-none">
+    <strong class="block font-serif text-[22px] font-medium tracking-[.34em]">IWP</strong>
+    <span data-brand-sub class="mt-1 block text-[9px] font-medium uppercase tracking-luxe {% if inverse %}text-paper/60{% else %}text-charcoal/50{% endif %}">The Wedding Concierge</span>
+  </span>
+</a>

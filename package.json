@@ -1,0 +1,15 @@
+{
+  "name": "iwp-concierge-assets",
+  "private": true,
+  "description": "Front-end asset tooling only (Tailwind CSS build, vendored htmx). The application itself is Django.",
+  "scripts": {
+    "build:css": "tailwindcss -i assets/tailwind.css -o static/css/app.css --minify",
+    "watch:css": "tailwindcss -i assets/tailwind.css -o static/css/app.css --watch",
+    "vendor": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true});require('fs').copyFileSync('node_modules/htmx.org/dist/htmx.min.js','static/js/vendor/htmx.min.js')\"",
+    "build": "npm run vendor && npm run build:css"
+  },
+  "devDependencies": {
+    "htmx.org": "2.0.4",
+    "tailwindcss": "3.4.17"
+  }
+}

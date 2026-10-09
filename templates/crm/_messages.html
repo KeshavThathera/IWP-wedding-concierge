@@ -1,0 +1,13 @@
+{# Thread bubbles; rendered for the full thread and for each live update. #}
+{% for m in messages_list %}
+  {% if m.role == "system" %}
+  <div data-id="{{ m.pk }}" class="flex items-center gap-3 py-1 text-[11px] uppercase tracking-[.14em] text-charcoal/45"><span class="h-px flex-1 bg-hairline"></span>{{ m.text }} · {{ m.created_at|date:"H:i" }}<span class="h-px flex-1 bg-hairline"></span></div>
+  {% elif m.role == "visitor" %}
+  <div data-id="{{ m.pk }}" class="flex animate-rise-in justify-start"><div class="max-w-[78%] rounded-2xl rounded-tl-sm border border-hairline bg-paper px-4 py-3 text-[14px] leading-relaxed text-charcoal">{{ m.text|linebreaksbr }}<p class="mt-1.5 text-[11px] text-charcoal/40">{{ selected.customer }} · {{ m.created_at|date:"j M, H:i" }}</p></div></div>
+  {% else %}
+  <div data-id="{{ m.pk }}" class="flex animate-rise-in justify-end"><div class="max-w-[78%] rounded-2xl rounded-tr-sm px-4 py-3 text-[14px] leading-relaxed text-paper {% if m.role == 'agent' %}bg-burgundy{% else %}bg-ink{% endif %}">
+    {{ m.text|linebreaksbr }}
+    <p class="mt-1.5 flex items-center justify-end gap-1.5 text-[11px] text-paper/55">{% if m.role == "agent" %}{{ m.author.get_full_name|default:"Staff" }}{% else %}{% monogram "h-3 w-3 text-champagne" %}Concierge{% if m.ai_generated %} · AI{% endif %}{% endif %} · {{ m.created_at|date:"j M, H:i" }}</p>
+  </div></div>
+  {% endif %}
+{% endfor %}

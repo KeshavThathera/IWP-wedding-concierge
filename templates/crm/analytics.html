@@ -1,0 +1,64 @@
+{% extends "crm/base_staff.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="mx-auto max-w-[1320px]">
+  <div class="mb-8">
+    <p class="eyebrow text-gold">Insight</p>
+    <h1 class="mt-3 font-serif text-[40px] font-light leading-tight text-ink">Signals behind the conversations.</h1>
+    <p class="mt-1 text-[14px] text-charcoal/60">The questions, destinations and routes shaping demand.</p>
+  </div>
+
+  <section class="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-hairline bg-hairline lg:grid-cols-4">
+    <div class="bg-paper p-6"><p class="text-[11px] uppercase tracking-[.2em] text-charcoal/55">Leads in pipeline</p><p class="mt-3 font-serif text-[40px] font-light leading-none text-ink">{{ stats.leads }}</p></div>
+    <div class="bg-paper p-6"><p class="text-[11px] uppercase tracking-[.2em] text-charcoal/55">Guests represented</p><p class="mt-3 font-serif text-[40px] font-light leading-none text-ink">{{ stats.guests|intcomma }}</p></div>
+    <div class="bg-paper p-6"><p class="text-[11px] uppercase tracking-[.2em] text-charcoal/55">Avg. fit score</p><p class="mt-3 font-serif text-[40px] font-light leading-none text-ink">{{ stats.avg_score }}%</p></div>
+    <div class="bg-paper p-6"><p class="text-[11px] uppercase tracking-[.2em] text-charcoal/55">Departments routed</p><p class="mt-3 font-serif text-[40px] font-light leading-none text-ink">{{ stats.departments }}</p></div>
+  </section>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <article class="panel p-7">
+      <p class="eyebrow text-gold">Conversation routing</p><h2 class="mt-2 font-serif text-[28px] text-ink">Conversations by department</h2>
+      {% include "crm/_donut.html" %}
+    </article>
+
+    <article class="panel p-7">
+      <p class="eyebrow text-gold">Lead progression</p><h2 class="mt-2 font-serif text-[28px] text-ink">Lead funnel</h2>
+      <div class="mt-7 space-y-3">
+        {% for row in funnel %}
+        <div class="grid grid-cols-[140px_1fr_3rem] items-center gap-4">
+          <span class="text-[13px] text-charcoal/75">{{ row.name }}</span>
+          <div class="h-7 overflow-hidden rounded-sm bg-[#EFE8DC]"><div class="h-full rounded-sm bg-burgundy" style="width: {{ row.width }}%; opacity: {{ row.opacity|stringformat:'s' }}"></div></div>
+          <span class="text-right text-[13px] tabular-nums text-ink">{{ row.value }}{% if row.conversion is not None %}<span class="block text-[10px] text-charcoal/45">{{ row.conversion }}%</span>{% endif %}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="mt-6 border-t border-hairline pt-4 text-[12px] leading-5 text-charcoal/55">Counts leads at or beyond each stage; percentages show progression from the previous stage.</p>
+    </article>
+
+    <article class="panel p-7">
+      <p class="eyebrow text-gold">Demand map</p><h2 class="mt-2 font-serif text-[28px] text-ink">Popular destinations</h2>
+      <div class="mt-7 space-y-5">
+        {% for d in destinations %}
+        <div>
+          <div class="mb-2 flex justify-between text-[14px]"><span class="text-ink">{{ d.name }}</span><span class="text-charcoal/50">{{ d.value }} lead{{ d.value|pluralize }}</span></div>
+          <div class="h-1.5 overflow-hidden rounded-full bg-[#EFE8DC]"><div class="h-full rounded-full bg-gold" style="width: {{ d.width }}%"></div></div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="panel p-7">
+      <p class="eyebrow text-gold">What visitors ask</p><h2 class="mt-2 font-serif text-[28px] text-ink">Frequently asked topics</h2>
+      <ol class="mt-5 divide-y divide-hairline">
+        {% for t in topics %}
+        <li class="flex items-center gap-5 py-3.5"><span class="w-6 font-serif text-xl italic text-gold">{{ forloop.counter }}</span><span class="flex-1 text-[14px] text-ink">{{ t.name }}</span><span class="text-[13px] tabular-nums text-charcoal/55">{{ t.percent }}%</span></li>
+        {% empty %}
+        <li class="py-3.5 text-[14px] text-charcoal/50">No visitor messages yet.</li>
+        {% endfor %}
+      </ol>
+      <p class="mt-3 text-[12px] text-charcoal/45">Classified from visitor messages by the concierge engine.</p>
+    </article>
+  </div>
+</div>
+{% endblock %}

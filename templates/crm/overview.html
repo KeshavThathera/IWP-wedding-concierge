@@ -1,0 +1,64 @@
+{% extends "crm/base_staff.html" %}
+
+{% block content %}
+<div class="mx-auto max-w-[1320px]">
+  <div class="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+    <div>
+      <p class="eyebrow text-gold">{{ today|date:"l, j F Y" }}</p>
+      <h1 class="mt-3 font-serif text-[40px] font-light leading-tight text-ink">Good {{ greeting }}, {{ user.get_full_name|default:user.username }}.</h1>
+      <p class="mt-1 text-[14px] text-charcoal/60">Here is what the concierge has prepared for your team today.</p>
+    </div>
+    <a href="{% url 'crm:inbox' %}" class="btn-dark self-start">Open team inbox {% icon "arrow-right" 14 %}</a>
+  </div>
+
+  <section class="grid gap-px overflow-hidden rounded-lg border border-hairline bg-hairline sm:grid-cols-2 xl:grid-cols-4">
+    {% for label, value, note in cards %}
+    <article class="bg-paper p-7">
+      <p class="text-[11px] uppercase tracking-[.2em] text-charcoal/55">{{ label }}</p>
+      <p class="mt-4 font-serif text-[56px] font-light leading-none text-ink">{{ value }}</p>
+      <p class="mt-3 text-[13px] text-charcoal/55">{{ note }}</p>
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
+    <article class="panel p-7">
+      <div class="flex items-end justify-between border-b border-hairline pb-5">
+        <div><p class="eyebrow text-gold">Live queue</p><h2 class="mt-2 font-serif text-[28px] font-normal text-ink">Recent conversations</h2></div>
+        <a href="{% url 'crm:inbox' %}" class="flex items-center gap-1.5 text-[12px] uppercase tracking-[.16em] text-burgundy hover:text-ink">View all {% icon "arrow-up-right" 14 %}</a>
+      </div>
+      <div class="divide-y divide-hairline">
+        {% for c in recent %}
+        <a href="{% url 'crm:inbox' %}?c={{ c.pk }}" class="-mx-3 flex items-center gap-4 rounded-md px-3 py-4 transition hover:bg-ivory/70">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-hairline bg-ivory font-serif text-[15px] text-burgundy">{{ c.customer|initials }}</span>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2"><p class="truncate text-[14px] font-medium text-ink">{{ c.customer }}</p>{% if c.needs_attention %}<span class="rounded-full bg-burgundy/[.08] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-burgundy">Priority</span>{% endif %}</div>
+            <p class="mt-0.5 truncate text-[13px] text-charcoal/55">{{ c.latest_visitor_text }}</p>
+          </div>
+          <div class="hidden text-right sm:block"><p class="text-[12px] text-charcoal/75">{{ c.department }}</p><p class="mt-0.5 text-[12px] text-charcoal/45">{{ c.updated_at|ago }}</p></div>
+        </a>
+        {% endfor %}
+      </div>
+    </article>
+
+    <div class="space-y-6">
+      <article class="panel p-7">
+        <p class="eyebrow text-gold">Routing mix</p>
+        <h2 class="mt-2 font-serif text-[28px] font-normal text-ink">By department</h2>
+        {% include "crm/_donut.html" %}
+      </article>
+      <article class="panel p-7">
+        <div class="flex items-end justify-between"><div><p class="eyebrow text-gold">Strongest fit</p><h2 class="mt-2 font-serif text-[28px] font-normal text-ink">Leads to call first</h2></div><a href="{% url 'crm:leads' %}" class="text-[12px] uppercase tracking-[.16em] text-burgundy hover:text-ink">Pipeline</a></div>
+        <ul class="mt-4 divide-y divide-hairline">
+          {% for l in top_leads %}
+          <li class="flex items-center justify-between gap-4 py-3.5">
+            <div class="min-w-0"><p class="truncate text-[14px] font-medium text-ink">{{ l.name }}</p><p class="truncate text-[13px] text-charcoal/55">{{ l.destination }} · {{ l.guests }} guests · {{ l.budget }}</p></div>
+            <span class="shrink-0 font-serif text-2xl text-burgundy">{{ l.score }}<span class="text-sm text-charcoal/40">%</span></span>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+  </section>
+</div>
+{% endblock %}
