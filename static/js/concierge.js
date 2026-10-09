@@ -187,9 +187,19 @@
     schedulePoll();
   }
 
+  const isReload = performance.getEntriesByType("navigation")[0]?.type === "reload";
+  let initialStateRequest;
+
+  function initialState() {
+    initialStateRequest ??= isReload
+      ? api(root.dataset.resetUrl, {})
+      : api(root.dataset.stateUrl);
+    return initialStateRequest;
+  }
+
   async function load() {
     if (state) return;
-    renderAll(await api(root.dataset.stateUrl));
+    renderAll(await initialState());
   }
 
   async function sendLive(text) {
@@ -295,5 +305,5 @@
 
   if (new URLSearchParams(window.location.search).get("chat") === "open") open();
 
-  api(root.dataset.stateUrl).then((data) => { if (data.live && !state) renderAll(data); }).catch(() => {});
+  initialState().then((data) => { if (data.live && !state) renderAll(data); }).catch(() => {});
 })();
