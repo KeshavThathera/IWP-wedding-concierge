@@ -1,5 +1,3 @@
-"""Read-only aggregations for the staff dashboard, computed with the ORM."""
-
 import math
 from collections import Counter
 from dataclasses import dataclass
@@ -26,7 +24,6 @@ class Segment:
 
 
 def department_mix() -> tuple[list[Segment], int]:
-    """Conversations per department, with SVG dash geometry for a donut chart."""
     rows = list(Conversation.objects.values("department").annotate(n=Count("id")).order_by("-n", "department"))
     total = sum(r["n"] for r in rows) or 1
     gap = 3 if len(rows) > 1 else 0
@@ -48,7 +45,6 @@ def department_mix() -> tuple[list[Segment], int]:
 
 
 def lead_funnel() -> list[dict]:
-    """Leads at or beyond each stage, with step-to-step conversion."""
     stages = list(Lead.Stage)
     counts = Counter(Lead.objects.values_list("stage", flat=True))
     rows, previous = [], None
@@ -76,7 +72,6 @@ def popular_destinations() -> list[dict]:
 
 
 def visitor_topics(limit: int = 5) -> list[dict]:
-    """Share of visitor messages mentioning each topic."""
     counter: Counter[str] = Counter()
     for text in Message.objects.filter(role=Message.Role.VISITOR).values_list("text", flat=True):
         counter.update(classify_topics(text))

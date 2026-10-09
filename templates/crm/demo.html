@@ -11,7 +11,7 @@
       <span class="hidden h-8 w-px bg-paper/15 md:block"></span>
       <div class="hidden md:block">
         <p class="eyebrow text-champagne">Live handoff demo</p>
-        <p class="mt-1 text-[13px] text-paper/60">The visitor’s phone and the team inbox, side by side, both live.</p>
+        <p class="mt-1 text-[13px] text-paper/60">The visitor's phone and the team inbox, side by side, both live.</p>
       </div>
     </div>
     <ol class="hidden items-center gap-5 text-[12px] text-paper/70 2xl:flex">
@@ -25,7 +25,6 @@
     </div>
   </header>
 
-  {# Needs a laptop-sized screen; smaller screens get a short note instead. #}
   <main class="hidden flex-1 grid-cols-[auto_1fr] gap-6 p-6 lg:grid">
     <section class="flex flex-col items-center">
       <p class="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-wide2 text-paper/55"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>Visitor · public website</p>
@@ -51,7 +50,6 @@
 
 {% block scripts %}
 <script>
-  // Start a fresh visitor conversation (keeps you signed in as staff) and reload the phone.
   document.querySelector("[data-new-visitor]").addEventListener("click", async () => {
     const token = document.cookie.split("; ").find((c) => c.startsWith("csrftoken="))?.split("=")[1] ?? "";
     await fetch("{% url 'concierge:chat-reset' %}", { method: "POST", headers: { "X-CSRFToken": token }, credentials: "same-origin" });

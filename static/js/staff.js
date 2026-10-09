@@ -1,4 +1,3 @@
-// Staff workspace enhancements. Every action also works as a plain form post without JS.
 (() => {
   // Mobile sidebar
   const sidebar = document.querySelector("[data-sidebar]");
@@ -12,7 +11,7 @@
   document.querySelector("[data-sidebar-close]")?.addEventListener("click", () => setSidebar(false));
   scrim?.addEventListener("click", () => setSidebar(false));
 
-  // Donut: hovering a slice or legend row highlights it and shows its count in the centre.
+  // donut hover
   document.querySelectorAll("[data-donut]").forEach((donut) => {
     const value = donut.querySelector("[data-donut-value]");
     const label = donut.querySelector("[data-donut-label]");
@@ -35,25 +34,23 @@
     });
   });
 
-  // Inbox: keep the newest message in view after load and after each HTMX swap.
   const scrollThread = () => document.querySelectorAll("[data-thread]").forEach((t) => { t.scrollTop = t.scrollHeight; });
   scrollThread();
   document.body.addEventListener("htmx:afterSwap", scrollThread);
 
-  // Inbox reply box: Enter sends, Shift+Enter adds a line.
+  // Enter sends, Shift+Enter for a new line
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" || e.shiftKey || !e.target.matches?.("[data-reply]")) return;
     e.preventDefault();
     if (e.target.value.trim()) e.target.form.requestSubmit();
   });
 
-  // Live thread: poll for new messages and the visitor's typing state. Re-armed after every HTMX swap.
+  // live thread polling
   const csrf = () => document.cookie.split("; ").find((c) => c.startsWith("csrftoken="))?.split("=")[1] ?? "";
   let liveTimer = null;
   const STATUS_DOT = { open: "bg-emerald-500", waiting: "bg-gold", resolved: "bg-charcoal/25" };
   const BUTTON_ON = ["bg-paper", "text-ink", "shadow-card"];
   const BUTTON_OFF = ["text-charcoal/55", "hover:text-ink"];
-  // The visitor writing (or a colleague acting) can change the status; keep the open thread in step.
   const syncStatus = (status, label) => {
     const pill = document.querySelector("[data-status-pill]");
     if (!pill || pill.dataset.statusPill === status) return;
@@ -97,7 +94,6 @@
   startLiveThread();
   document.body.addEventListener("htmx:afterSwap", (e) => { if (e.detail.target.id === "inbox-panel") startLiveThread(); });
 
-  // Tell the visitor we're typing (at most every 2.5 s).
   let lastTypingPing = 0;
   document.addEventListener("input", (e) => {
     const box = e.target.closest?.("[data-typing-url]");
@@ -106,7 +102,7 @@
     fetch(box.dataset.typingUrl, { method: "POST", headers: { "X-CSRFToken": csrf() }, credentials: "same-origin" }).catch(() => {});
   });
 
-  // Lead pipeline drag-and-drop (delegated, so it survives HTMX swaps of #board).
+  // lead drag and drop
   let dragged = null;
   document.addEventListener("dragstart", (e) => {
     const card = e.target.closest?.("[data-lead]");

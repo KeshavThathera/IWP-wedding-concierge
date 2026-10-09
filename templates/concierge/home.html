@@ -6,7 +6,6 @@
 {% block body %}
 <main class="min-h-screen overflow-x-clip bg-ivory">
 
-  {# Navigation: transparent over the hero, solid ivory once scrolled (see site.js). #}
   <nav id="site-nav" data-solid="false" class="group/nav fixed inset-x-0 top-0 z-30 bg-transparent py-6 transition-all duration-500 data-[solid=true]:border-b data-[solid=true]:border-hairline data-[solid=true]:bg-paper/90 data-[solid=true]:py-3 data-[solid=true]:backdrop-blur-xl">
     <div class="mx-auto grid max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-12">
       <div class="flex items-center gap-9">
@@ -42,7 +41,7 @@
           Every grand celebration begins with a <em class="font-light text-champagne">conversation.</em>
         </h1>
         <p class="mt-8 max-w-xl text-[17px] font-light leading-8 text-paper/80">
-          A multilingual concierge that welcomes each enquiry with the grace of a seasoned planner—and quietly guides it to the right specialist.
+          A multilingual concierge that welcomes each enquiry with the grace of a seasoned planner, and quietly guides it to the right specialist.
         </p>
         <div class="mt-11 flex flex-wrap gap-4">
           <button type="button" data-ask class="btn-light">Begin a conversation {% icon "arrow-right" 15 %}</button>
@@ -63,7 +62,7 @@
       <div class="mx-auto max-w-4xl text-center">
         <p class="ornament justify-center"><span class="eyebrow">Hospitality, extended</span></p>
         <h2 class="mt-10 font-serif text-[clamp(2.25rem,4.6vw,4rem)] font-light leading-[1.12] text-ink">
-          For families who plan in generations, not checklists—<em class="text-burgundy">a concierge that listens before it answers.</em>
+          For families who plan in generations, not checklists: <em class="text-burgundy">a concierge that listens before it answers.</em>
         </h2>
       </div>
       <div class="mt-24 grid border-t border-hairline md:grid-cols-3">
@@ -78,7 +77,6 @@
     </div>
   </section>
 
-  {# Journey, editorial split #}
   <section class="bg-paper px-6 py-28 lg:px-12 lg:py-36">
     <div class="mx-auto grid max-w-[1180px] items-center gap-16 lg:grid-cols-[.85fr_1fr] lg:gap-24">
       <div class="relative mx-auto w-full max-w-[440px]">
@@ -86,7 +84,7 @@
           <img src="{% static 'images/wedding-hero.jpg' %}" alt="A couple beneath a floral mandap" loading="lazy" class="absolute inset-0 h-full w-full scale-[1.9] object-cover object-[71%_62%]">
         </div>
         <div class="arch pointer-events-none absolute -inset-4 border border-gold/30"></div>
-        <p class="absolute -bottom-10 left-0 right-0 text-center font-serif text-sm italic text-charcoal/50">Rajasthan, imagined — an original AI-generated visual</p>
+        <p class="absolute -bottom-10 left-0 right-0 text-center font-serif text-sm italic text-charcoal/50">Rajasthan, imagined. An original AI-generated visual</p>
       </div>
       <div>
         <p class="eyebrow text-gold">The journey of an enquiry</p>
@@ -154,7 +152,7 @@
       <div class="lg:sticky lg:top-32">
         <p class="eyebrow text-gold">An open invitation</p>
         <h2 class="mt-6 font-serif text-[clamp(2.5rem,5vw,4.25rem)] font-light leading-[1.02] text-ink">Try a real conversation.</h2>
-        <p class="mt-7 max-w-md text-[15px] font-light leading-7 text-charcoal/70">Choose a sample question—or write your own—and watch the concierge recognise intent, ask a considered follow-up and prepare a handoff. Each handed-off conversation appears in the staff workspace.</p>
+        <p class="mt-7 max-w-md text-[15px] font-light leading-7 text-charcoal/70">Choose a sample question (or write your own) and watch the concierge recognise intent, ask a considered follow-up and prepare a handoff. Each handed-off conversation appears in the staff workspace.</p>
         <div class="mt-10 flex flex-wrap gap-4">
           <button type="button" data-ask class="btn-dark">Open the concierge {% icon "arrow-right" 15 %}</button>
           <a href="{% url 'crm:inbox' %}" class="btn-outline">See the team inbox</a>
@@ -164,7 +162,7 @@
         <p class="flex items-center justify-between py-5 text-[11px] uppercase tracking-wide2 text-charcoal/55"><span>Sample questions</span><span>Six routes</span></p>
         {% for q in prompts %}
         <button type="button" data-ask="{{ q }}" class="group flex w-full items-center justify-between gap-6 border-t border-hairline py-6 text-left">
-          <span class="font-serif text-2xl font-light text-ink transition group-hover:translate-x-2 group-hover:text-burgundy">“{{ q }}”</span>
+          <span class="font-serif text-2xl font-light text-ink transition group-hover:translate-x-2 group-hover:text-burgundy">"{{ q }}"</span>
           {% icon "arrow-up-right" 18 "shrink-0 text-gold transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" %}
         </button>
         {% endfor %}
@@ -177,7 +175,7 @@
     <div class="mx-auto max-w-[1280px]">
       <div class="flex flex-col items-center text-center">
         {% include "partials/brand.html" with inverse=True centered=True %}
-        <p class="mt-10 max-w-2xl font-serif text-2xl font-light italic leading-snug text-paper/80">“The most memorable celebrations are remembered for how every guest was made to feel—beginning with the very first message.”</p>
+        <p class="mt-10 max-w-2xl font-serif text-2xl font-light italic leading-snug text-paper/80">"The most memorable celebrations are remembered for how every guest was made to feel, beginning with the very first message."</p>
       </div>
       <div class="mt-20 grid gap-10 border-t border-paper/15 pt-10 text-[13px] font-light leading-6 text-paper/55 md:grid-cols-3">
         <div><p class="eyebrow mb-3 text-champagne">About this concept</p>An independent portfolio concept exploring how an AI concierge might support a luxury wedding-planning house. Not affiliated with, endorsed by or operated by Indian Wedding Planners.</div>

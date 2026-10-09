@@ -1,9 +1,3 @@
-"""Staff workspace. Every view requires a signed-in user.
-
-Interactive actions (inbox updates, moving leads) are plain POSTs that also
-work without JavaScript; when sent by HTMX they return just the changed panel.
-"""
-
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
@@ -99,7 +93,7 @@ def _inbox_context(request: HttpRequest, selected_id=None) -> dict:
 @login_required
 def inbox(request: HttpRequest):
     context = _inbox_context(request)
-    if request.GET.get("partial") == "list":  # polled every few seconds to surface new activity
+    if request.GET.get("partial") == "list":
         return render(request, "crm/_inbox_list.html", context)
     template = "crm/_inbox_panel.html" if is_htmx(request) else "crm/inbox.html"
     return render(request, template, context)
@@ -108,7 +102,6 @@ def inbox(request: HttpRequest):
 @login_required
 @require_POST
 def conversation_action(request: HttpRequest, pk: int):
-    """Assign, change status, save a note or reply. One endpoint keeps the panel re-render simple."""
     conversation = get_object_or_404(Conversation, pk=pk)
     action = request.POST.get("action")
     note_saved = False
@@ -143,7 +136,6 @@ def conversation_action(request: HttpRequest, pk: int):
 @login_required
 @require_GET
 def thread_updates(request: HttpRequest, pk: int):
-    """Polled by the open inbox thread: rendered new messages since ``after``, plus visitor typing."""
     conversation = get_object_or_404(Conversation, pk=pk)
     try:
         after = int(request.GET.get("after", 0))
@@ -202,7 +194,6 @@ def move_lead(request: HttpRequest, pk: int):
 
 @login_required
 def demo(request: HttpRequest):
-    """Live handoff demo: the public site (in a phone frame) and the team inbox side by side."""
     return render(request, "crm/demo.html", {"nav": "demo"})
 
 

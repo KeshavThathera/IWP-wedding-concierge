@@ -1,8 +1,3 @@
-"""REST API for the staff workspace (Django REST Framework).
-
-Authenticated staff only. Browsable at /api/ when signed in.
-"""
-
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -65,7 +60,7 @@ class LeadSerializer(serializers.ModelSerializer):
 
 
 class ConversationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
-    """List, read and update (status / note) conversations. Filter with ?department= and ?status=."""
+    """Conversations. Filter with ?department= and ?status=."""
 
     serializer_class = ConversationSerializer
 
@@ -78,7 +73,7 @@ class ConversationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixi
 
 
 class LeadViewSet(viewsets.ModelViewSet):
-    """Full CRUD on leads. ``GET /api/leads/funnel/`` returns pipeline counts per stage."""
+    """Leads, plus /api/leads/funnel/ for stage counts."""
 
     serializer_class = LeadSerializer
     queryset = Lead.objects.all()

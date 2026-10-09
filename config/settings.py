@@ -1,9 +1,3 @@
-"""Django settings for the IWP AI Wedding Concierge concept demo.
-
-Configuration is read from environment variables so the same settings work
-locally (SQLite, DEBUG on) and in production (PostgreSQL via DATABASE_URL).
-"""
-
 import os
 from pathlib import Path
 
@@ -11,7 +5,7 @@ import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")  # Local convenience; real environment variables take precedence.
+load_dotenv(BASE_DIR / ".env")
 
 
 def env_bool(name: str, default: bool = False) -> bool:
@@ -55,7 +49,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
-# The live demo page frames the site and the inbox side by side (same origin only).
+# the demo split view uses iframes
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
 TEMPLATES = [
@@ -118,21 +112,18 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 50,
 }
 
-# Optional Gemini integration. Without a key the concierge runs on its rules alone.
+# Gemini (optional, the rules work without it)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
-# Tried in order when the primary model is overloaded, rate-limited or slow (free-tier quotas are per model).
 GEMINI_FALLBACK_MODELS = [m.strip() for m in os.environ.get("GEMINI_FALLBACK_MODELS", "gemini-3.1-flash-lite").split(",") if m.strip()]
 GEMINI_TIMEOUT = float(os.environ.get("GEMINI_TIMEOUT", "6"))
-# Must be a level the chosen models support; empty string omits thinkingConfig entirely.
 GEMINI_THINKING_LEVEL = os.environ.get("GEMINI_THINKING_LEVEL", "minimal")
-# Total seconds an AI step may take (across fallback models) before the rules answer instead.
+# seconds before falling back to the rules
 GEMINI_REPLY_BUDGET = float(os.environ.get("GEMINI_REPLY_BUDGET", "4"))
 GEMINI_ROUTING_BUDGET = float(os.environ.get("GEMINI_ROUTING_BUDGET", "3"))
 GEMINI_BACKGROUND_BUDGET = float(os.environ.get("GEMINI_BACKGROUND_BUDGET", "10"))
-# Write the AI handoff summary after the visitor is connected, so the handoff itself never waits on it.
 AI_SUMMARY_IN_BACKGROUND = env_bool("AI_SUMMARY_IN_BACKGROUND", True)
-GEMINI_MAX_RPM = int(os.environ.get("GEMINI_MAX_RPM", "12"))  # Stay under the free tier's per-minute limit.
+GEMINI_MAX_RPM = int(os.environ.get("GEMINI_MAX_RPM", "12"))
 GEMINI_MAX_PER_VISITOR_HOUR = int(os.environ.get("GEMINI_MAX_PER_VISITOR_HOUR", "30"))
 
 LOGGING = {
@@ -147,5 +138,4 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Conservative default; raise (and consider preload) once the domain is settled.
     SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "3600"))

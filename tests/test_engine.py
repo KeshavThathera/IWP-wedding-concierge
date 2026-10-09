@@ -1,5 +1,3 @@
-"""Unit tests for the pure-Python concierge engine (no database needed)."""
-
 import pytest
 
 from concierge.engine import (
@@ -23,11 +21,11 @@ def converse(*messages: str) -> tuple[ConciergeState, list]:
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("I’m planning a Jaipur wedding for 250 guests.", Department.WEDDING_SALES),
-        ("I’m a photographer and would love to collaborate on a wedding.", Department.VENDORS),
+        ("I'm planning a Jaipur wedding for 250 guests.", Department.WEDDING_SALES),
+        ("I'm a photographer and would love to collaborate on a wedding.", Department.VENDORS),
         ("Do you have any internships?", Department.HR_CAREERS),
         ("I need a copy of my invoice.", Department.FINANCE),
-        ("I’m already a client and need urgent help.", Department.CLIENT_SERVICING),
+        ("I'm already a client and need urgent help.", Department.CLIENT_SERVICING),
         ("Can we feature you in our magazine? I work in media.", Department.MARKETING),
         ("Hello there", Department.GENERAL),
         ("Main Udaipur mein shaadi plan kar raha hoon.", Department.WEDDING_SALES),
@@ -38,7 +36,6 @@ def test_detect_department(text, expected):
 
 
 def test_specific_routes_win_over_wedding_terms():
-    # Mentions "wedding" but is clearly a vendor enquiry.
     assert detect_department("Wedding photographer here, keen to partner") == Department.VENDORS
 
 
@@ -53,9 +50,9 @@ def test_detect_lang(text, lang):
 
 def test_wedding_qualification_never_repeats_a_question():
     state, turns = converse(
-        "I’m planning a Jaipur wedding for 250 guests.",
+        "I'm planning a Jaipur wedding for 250 guests.",
         "December 2027",
-        "Around ₹1.5–2 Cr",
+        "Around ₹1.5-2 Cr",
         "A heritage palace",
         "WhatsApp on +91 90000 12345",
     )
@@ -71,13 +68,13 @@ def test_wedding_qualification_never_repeats_a_question():
 
 
 def test_accepting_the_offer_requests_a_handoff():
-    state, turns = converse("I’m planning a Jaipur wedding for 250 guests.", "December", "₹50 lakh", "Palace", "Email", "Yes please")
+    state, turns = converse("I'm planning a Jaipur wedding for 250 guests.", "December", "₹50 lakh", "Palace", "Email", "Yes please")
     assert turns[-1].is_handoff
     assert state.messages[-1].role == "visitor"
 
 
 def test_declining_the_offer_keeps_the_conversation_open():
-    _, turns = converse("I’m planning a Jaipur wedding for 250 guests.", "December", "₹50 lakh", "Palace", "Email", "No, not now")
+    _, turns = converse("I'm planning a Jaipur wedding for 250 guests.", "December", "₹50 lakh", "Palace", "Email", "No, not now")
     assert not turns[-1].is_handoff
     assert "no rush" in turns[-1].reply
 
@@ -92,7 +89,6 @@ def test_hinglish_is_sticky_for_the_whole_conversation():
 def test_budget_question_starts_with_guest_count():
     _, turns = converse("Understand budgets", "200")
     assert "how many guests" in turns[0].reply
-    # The guest count is recorded, so the next question is the first missing detail.
     assert turns[1].flow.answers == {"guests": "200"}
     assert "destination" in turns[1].reply
 
@@ -104,7 +100,7 @@ def test_asking_for_a_person_hands_off_immediately():
 
 
 def test_client_servicing_offers_urgent_handoff_then_accepts_yes():
-    _, turns = converse("I’m already a client and need urgent help.", "Yes")
+    _, turns = converse("I'm already a client and need urgent help.", "Yes")
     assert "Shall I connect you" in turns[0].reply
     assert turns[1].is_handoff
 
@@ -118,16 +114,16 @@ def test_other_departments_collect_contact_then_offer_handoff():
 
 def test_extract_lead_from_a_full_conversation():
     state, _ = converse(
-        "I’m planning a Jaipur wedding for 250 guests.",
+        "I'm planning a Jaipur wedding for 250 guests.",
         "December 2027",
-        "Around ₹1.5–2 Cr",
+        "Around ₹1.5-2 Cr",
         "A heritage palace",
         "WhatsApp on +91 90000 12345",
     )
     lead = extract_lead(state)
     assert lead.destination == "Jaipur"
     assert lead.guests == 250
-    assert lead.budget == "₹1.5–2 Cr"
+    assert lead.budget == "₹1.5-2 Cr"
     assert lead.month == "December"
     assert lead.style == "Heritage"
     assert lead.contact == "+91 90000 12345"

@@ -1,9 +1,3 @@
-"""Minimal Gemini client over the public REST API.
-
-Uses only the standard library: no SDK, nothing compiled, trivially mockable.
-Every failure surfaces as ``LLMError`` so callers can fall back to the rules.
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -22,17 +16,15 @@ from django.core.cache import cache
 logger = logging.getLogger(__name__)
 
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-# Errors that mean "this model can't serve us right now" (overload, per-model quota, slow
-# response): worth trying the next model. Anything else (bad key, bad request) fails fast.
+# worth retrying on the next model
 FAILOVER_STATUS = frozenset({429, 500, 502, 503, 504})
-# After a failure, skip that model for a while so later requests don't wait on it again.
 COOLDOWN_SECONDS = {"rate-limited": 60, "overloaded": 20, "timed out": 15}
-MIN_ATTEMPT_SECONDS = 0.8  # don't start a request that has no realistic chance of finishing
-PRIMARY_SHARE = 0.6  # of the remaining time budget, when a fallback model is still available
+MIN_ATTEMPT_SECONDS = 0.8
+PRIMARY_SHARE = 0.6
 
 
 class LLMError(Exception):
-    """The model could not produce a usable answer (network, quota, safety block, empty reply…)."""
+    pass
 
 
 @dataclass(frozen=True)
@@ -57,8 +49,6 @@ class LLMClient(Protocol):
 
 
 class GeminiClient:
-    """Calls ``models`` in order, moving to the next one when a model is overloaded or slow."""
-
     def __init__(self, api_key: str, models: str | list[str], timeout: float = 6.0, thinking_level: str = "minimal"):
         self.api_key, self.timeout, self.thinking_level = api_key, timeout, thinking_level
         self.models = [models] if isinstance(models, str) else list(models)
@@ -74,14 +64,12 @@ class GeminiClient:
         json_schema: dict | None = None,
         deadline: float | None = None,
     ) -> str:
-        """``deadline`` is the total seconds this request may take across every model tried."""
         config: dict = {"temperature": temperature, "maxOutputTokens": max_tokens}
         if json_schema:
-            # Structured output: the model must return JSON matching this schema (e.g. a fixed list of teams).
             config["responseMimeType"] = "application/json"
             config["responseSchema"] = json_schema
         if self.thinking_level:
-            # Hidden "thinking" tokens count against maxOutputTokens; short concierge replies don't need them.
+            # thinking tokens count against maxOutputTokens
             config["thinkingConfig"] = {"thinkingLevel": self.thinking_level}
         body = json.dumps(
             {
@@ -100,7 +88,7 @@ class GeminiClient:
             if remaining < MIN_ATTEMPT_SECONDS:
                 failures.append(f"{model}: out of time")
                 break
-            # Leave the backup model a fair share of the budget instead of letting the first one use it all.
+            # leave part of the budget for the fallback model
             share = PRIMARY_SHARE if model != self.models[-1] else 1.0
             try:
                 return self._call(model, body, timeout=min(self.timeout, max(remaining * share, MIN_ATTEMPT_SECONDS)))
@@ -138,7 +126,7 @@ class GeminiClient:
         candidate = (data.get("candidates") or [{}])[0]
         text = "".join(p.get("text", "") for p in candidate.get("content", {}).get("parts", []) if not p.get("thought")).strip()
         if candidate.get("finishReason") == "MAX_TOKENS":
-            text = _last_complete_sentence(text)  # never show a half-finished sentence
+            text = _last_complete_sentence(text)
         if not text:
             reason = candidate.get("finishReason") or data.get("promptFeedback", {}).get("blockReason", "unknown")
             raise LLMError(f"Gemini returned no usable text (reason: {reason})")
@@ -147,21 +135,18 @@ class GeminiClient:
 
 
 class _Unavailable(Exception):
-    """Internal signal: this model can't serve the request right now; try the next."""
-
     def __init__(self, kind: str):
         super().__init__(kind)
         self.kind = kind
 
 
 def _last_complete_sentence(text: str) -> str:
-    """Cut a truncated reply back to its last full sentence (English or Hindi punctuation)."""
     match = re.search(r"^(.*[.!?।])", text, re.S)
     return match.group(1).strip() if match else ""
 
 
 def _normalise(turns: list[Turn]) -> list[Turn]:
-    """Gemini expects the conversation to start with the user and alternate roles."""
+    # Gemini wants a user turn first and alternating roles
     merged: list[Turn] = []
     for turn in turns:
         if not merged and turn.role != "user":
@@ -177,7 +162,6 @@ _override: LLMClient | None = None
 
 
 def get_client() -> LLMClient | None:
-    """The configured client, or None when no API key is set (rules-only mode)."""
     if _override is not None:
         return _override
     if not settings.GEMINI_API_KEY:
@@ -187,14 +171,12 @@ def get_client() -> LLMClient | None:
 
 
 def set_client(client: LLMClient | None) -> None:
-    """Swap in a fake client (tests, local experiments)."""
     global _override
     _override = client
 
 
 def within_budget(scope: str) -> bool:
-    """Protect the free-tier quota: a global per-minute cap plus a per-visitor hourly cap."""
-    scope = hashlib.sha256(scope.encode()).hexdigest()[:16]  # Safe, fixed-length cache key
+    scope = hashlib.sha256(scope.encode()).hexdigest()[:16]
     minute = int(time.time() // 60)
     hour = int(time.time() // 3600)
     checks = [

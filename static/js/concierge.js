@@ -1,5 +1,3 @@
-// Concierge chat client. Replies come from the server (concierge/engine.py, optionally Gemini);
-// after a handoff the widget becomes a live chat with the team, polling for new messages.
 (() => {
   const root = document.getElementById("concierge-widget");
   if (!root) return;
@@ -89,7 +87,6 @@
     restart.classList.toggle("hidden", !finished);
   }
 
-  // Header and footer reflect who the visitor is talking to.
   function applyLive(next) {
     live = next;
     header.avatar.className = defaultAvatarClass;
@@ -166,7 +163,7 @@
     return data;
   }
 
-  // Live polling: every second while the chat is open, every 5 s in the background (for the unread badge).
+  // poll faster while the chat is open
   function schedulePoll(delay) {
     clearTimeout(pollTimer);
     if (!live || live.status === "closed") return;
@@ -196,7 +193,6 @@
   }
 
   async function sendLive(text) {
-    // Talking to the team: no typing pause, the message goes straight into the conversation.
     const data = await api(root.dataset.messageUrl, { text });
     data.new.filter((m) => !seen.has(m.id)).forEach(renderMessage);
     applyLive(data.live);
@@ -268,7 +264,6 @@
     schedulePoll();
   }
 
-  // Let the team see when the visitor is typing (at most every 2.5 s).
   let lastTypingPing = 0;
   input.addEventListener("input", () => {
     send.disabled = !input.value.trim() || busy;
@@ -290,7 +285,7 @@
     input.focus();
   });
 
-  // Any element with data-ask opens the concierge; a non-empty value is sent as the first message.
+  // [data-ask] buttons open the chat
   document.addEventListener("click", (e) => {
     const trigger = e.target.closest("[data-ask]");
     if (!trigger) return;
@@ -298,9 +293,7 @@
     open(trigger.dataset.ask || undefined);
   });
 
-  // ?chat=open (used by the staff live demo) opens the concierge straight away.
   if (new URLSearchParams(window.location.search).get("chat") === "open") open();
 
-  // A visitor returning mid-handoff (e.g. after a reload) keeps receiving replies and the unread badge.
   api(root.dataset.stateUrl).then((data) => { if (data.live && !state) renderAll(data); }).catch(() => {});
 })();

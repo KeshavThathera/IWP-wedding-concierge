@@ -1,5 +1,3 @@
-"""Integration tests for the public chat endpoints, staff workspace and REST API."""
-
 import json
 
 import pytest
@@ -26,9 +24,6 @@ def say(client, text):
     return client.post(reverse("concierge:chat-message"), data=json.dumps({"text": text}), content_type="application/json")
 
 
-# Public site and chat -------------------------------------------------------------
-
-
 def test_home_renders_with_csrf_cookie(client):
     response = client.get(reverse("concierge:home"))
     assert response.status_code == 200
@@ -45,9 +40,9 @@ def test_chat_state_starts_with_greeting(client):
 
 def test_full_wedding_chat_creates_ticket_and_qualified_lead(client):
     for text in [
-        "I’m planning a Jaipur wedding for 250 guests.",
+        "I'm planning a Jaipur wedding for 250 guests.",
         "December 2027",
-        "Around ₹1.5–2 Cr",
+        "Around ₹1.5-2 Cr",
         "Heritage palace",
         "WhatsApp on +91 90000 12345",
     ]:
@@ -71,7 +66,7 @@ def test_reset_starts_a_fresh_conversation_after_handoff(client):
 
 
 def test_client_servicing_handoff_is_high_priority(client):
-    say(client, "I’m already a client and need urgent help.")
+    say(client, "I'm already a client and need urgent help.")
     ticket = say(client, "yes").json()["ticket"]
     assert Conversation.objects.get(ticket=ticket).priority == Conversation.Priority.HIGH
 
@@ -87,9 +82,6 @@ def test_chat_requires_csrf_token():
 
     strict = Client(enforce_csrf_checks=True)
     assert strict.post(reverse("concierge:chat-message"), data="{}", content_type="application/json").status_code == 403
-
-
-# Staff workspace ------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("name", ["crm:overview", "crm:inbox", "crm:leads", "crm:analytics"])
@@ -126,7 +118,7 @@ def test_take_over_reply_and_note(staff):
     assert conversation.note == "Prefers evenings."
     assert conversation.status == Conversation.Status.WAITING
     assert conversation.messages.last().role == Message.Role.AGENT
-    assert response.templates[0].name == "crm/_inbox_panel.html"  # HTMX gets only the panel
+    assert response.templates[0].name == "crm/_inbox_panel.html"
 
 
 def test_status_change_ignores_unknown_values(staff):
@@ -151,9 +143,6 @@ def test_reset_restores_seed_data(staff):
     staff.post(reverse("crm:reset"))
     assert Lead.objects.count() == 6
     assert Conversation.objects.count() == 8
-
-
-# REST API -------------------------------------------------------------------------
 
 
 def test_api_requires_authentication(client, demo):

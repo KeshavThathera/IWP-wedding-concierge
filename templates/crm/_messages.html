@@ -1,4 +1,3 @@
-{# Thread bubbles; rendered for the full thread and for each live update. #}
 {% for m in messages_list %}
   {% if m.role == "system" %}
   <div data-id="{{ m.pk }}" class="flex items-center gap-3 py-1 text-[11px] uppercase tracking-[.14em] text-charcoal/45"><span class="h-px flex-1 bg-hairline"></span>{{ m.text }} · {{ m.created_at|date:"H:i" }}<span class="h-px flex-1 bg-hairline"></span></div>

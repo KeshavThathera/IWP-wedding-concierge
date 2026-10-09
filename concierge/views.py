@@ -1,9 +1,3 @@
-"""Public website and the concierge chat endpoints.
-
-Chat state lives in the visitor's session; nothing is written to the database
-until the conversation is handed off to a person.
-"""
-
 import json
 
 from django.http import HttpRequest, JsonResponse
@@ -53,7 +47,7 @@ PILLARS = [
     (
         "I",
         "Listens first",
-        "Every enquiry—whether a wedding, a career or a partnership—is understood before it is routed. No forms, no menus.",
+        "Every enquiry, whether a wedding, a career or a partnership, is understood before it is routed. No forms, no menus.",
     ),
     (
         "II",
@@ -63,20 +57,20 @@ PILLARS = [
     (
         "III",
         "Hands over gracefully",
-        "The right specialist receives a summary, the full conversation and a reference—before they pick up the phone.",
+        "The right specialist receives a summary, the full conversation and a reference before they pick up the phone.",
     ),
 ]
 JOURNEY = [
     ("Welcome", "A warm greeting in English, हिन्दी or Hinglish, available at any hour."),
-    ("Understand", "Intent is recognised—wedding sales, client servicing, careers, vendors or finance."),
+    ("Understand", "Intent is recognised: wedding sales, client servicing, careers, vendors or finance."),
     ("Qualify", "Destination, guests, dates and budget are gathered conversationally."),
     ("Introduce", "A prepared handoff arrives in the team inbox and lead pipeline."),
 ]
 SAMPLE_PROMPTS = [
-    "I’m planning a Jaipur wedding for 250 guests.",
+    "I'm planning a Jaipur wedding for 250 guests.",
     "Main Udaipur mein shaadi plan kar raha hoon.",
-    "I’m a photographer and would love to collaborate.",
-    "I’m already a client and need urgent help.",
+    "I'm a photographer and would love to collaborate.",
+    "I'm already a client and need urgent help.",
     "I need a copy of my invoice.",
     "I would like to speak to a person.",
 ]
@@ -108,7 +102,7 @@ def _serialize(message: Message) -> dict:
 
 
 def _conversation(state: ConciergeState) -> Conversation | None:
-    """The visitor's own handed-off conversation; the id only ever comes from their session."""
+    # only ever read from the visitor's own session
     if not state.conversation_id:
         return None
     return Conversation.objects.select_related("assigned_to").filter(pk=state.conversation_id).first()
@@ -157,7 +151,7 @@ def _read_text(request: HttpRequest) -> tuple[str | None, JsonResponse | None]:
     except (ValueError, AttributeError):
         return None, JsonResponse({"error": "Invalid JSON."}, status=400)
     if not text or len(text) > MAX_MESSAGE_LENGTH:
-        return None, JsonResponse({"error": f"Message must be 1–{MAX_MESSAGE_LENGTH} characters."}, status=400)
+        return None, JsonResponse({"error": f"Message must be 1-{MAX_MESSAGE_LENGTH} characters."}, status=400)
     return text, None
 
 
@@ -173,7 +167,7 @@ def chat_message(request: HttpRequest):
         return error
     state = _load(request)
 
-    if state.ticket:  # Handed off: the visitor is now talking to the team, not the concierge.
+    if state.ticket:  # already handed off, talking to the team now
         conversation = _conversation(state)
         if conversation is None or live_status(conversation) == "closed":
             return JsonResponse({"error": "This conversation has been closed. Start a new one."}, status=409)
@@ -186,7 +180,6 @@ def chat_message(request: HttpRequest):
     enhance_reply(state, turn, text, budget_scope=request.session.session_key)
     handoff = None
     if turn.is_handoff:
-        # The visitor wants a person: pick the right team (their own choice, Gemini, or rules), or ask them.
         if turn.team_chosen:
             routing = visitor_choice(state.department, text)
         elif turn.accepted_offer:
@@ -209,7 +202,6 @@ def chat_message(request: HttpRequest):
 
 @require_GET
 def chat_live(request: HttpRequest):
-    """Polled by the widget after handoff: new messages since ``after``, plus status and typing."""
     conversation = _conversation(_load(request))
     if conversation is None:
         return JsonResponse({"error": "No live conversation."}, status=404)

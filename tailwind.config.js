@@ -42,6 +42,5 @@ module.exports = {
       }
     }
   },
-  // `embed:` styles apply inside the compact inbox shown in the live demo split view.
   plugins: [plugin(({ addVariant }) => addVariant("embed", ".embed &"))]
 };

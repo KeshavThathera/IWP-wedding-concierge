@@ -1,4 +1,3 @@
-{# Floating concierge. Behaviour lives in static/js/concierge.js; replies come from concierge/engine.py. #}
 <div id="concierge-widget" data-state-url="{% url 'concierge:chat-state' %}" data-message-url="{% url 'concierge:chat-message' %}" data-reset-url="{% url 'concierge:chat-reset' %}" data-live-url="{% url 'concierge:chat-live' %}" data-typing-url="{% url 'concierge:chat-typing' %}">
   <button type="button" data-chat-open aria-label="Open the wedding concierge" class="group fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-ink p-2.5 text-paper shadow-soft ring-1 ring-champagne/30 transition duration-300 hover:-translate-y-0.5 hover:bg-burgundy data-[hidden=true]:pointer-events-none data-[hidden=true]:translate-y-2 data-[hidden=true]:opacity-0 sm:pr-6">
     <span class="relative grid h-10 w-10 place-items-center rounded-full border border-champagne/40">
@@ -37,7 +36,7 @@
           <button data-chat-send disabled class="grid h-10 w-10 place-items-center rounded-full bg-ink text-paper transition hover:bg-burgundy disabled:opacity-30" aria-label="Send message">{% icon "send" 16 %}</button>
         </form>
         <button type="button" data-chat-restart class="btn-dark hidden w-full">Start a new conversation</button>
-        <p class="mt-3 text-center text-[10px] uppercase tracking-wide2 text-charcoal/40">Concept demo · please don’t share sensitive details</p>
+        <p class="mt-3 text-center text-[10px] uppercase tracking-wide2 text-charcoal/40">Concept demo · please don't share sensitive details</p>
       </footer>
     </section>
   </div>

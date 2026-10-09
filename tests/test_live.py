@@ -1,5 +1,3 @@
-"""Live chat between the visitor's widget and the staff inbox after a handoff."""
-
 import json
 
 import pytest
@@ -23,8 +21,7 @@ def poll(client, after=0):
 
 @pytest.fixture
 def handed_off(client):
-    """A visitor who has just been handed off; returns (visitor client, conversation)."""
-    data = say(client, "I’m planning a Jaipur wedding for 250 guests. Can I speak to someone?").json()
+    data = say(client, "I'm planning a Jaipur wedding for 250 guests. Can I speak to someone?").json()
     return client, Conversation.objects.get(ticket=data["ticket"])
 
 
@@ -45,7 +42,7 @@ def test_handoff_switches_the_widget_to_live_mode(handed_off):
     data = client.get(reverse("concierge:chat-state")).json()
     assert data["live"]["status"] == "waiting"
     assert data["live"]["agent"] is None
-    assert all("id" in m for m in data["messages"])  # transcript now comes from the database
+    assert all("id" in m for m in data["messages"])
     assert data["messages"][-1] == {**data["messages"][-1], "role": "system", "text": "Waiting for the Wedding Sales team to join"}
     assert data["live"]["cursor"] == conversation.messages.last().pk
 
@@ -56,7 +53,7 @@ def test_visitor_messages_reach_the_conversation_with_a_single_ack(handed_off):
     second = say(client, "And we need 40 rooms").json()
     assert [m["role"] for m in first["new"]] == ["visitor", "assistant"]
     assert first["new"][1]["text"] == WAITING_ACK
-    assert [m["role"] for m in second["new"]] == ["visitor"]  # the ack is not repeated
+    assert [m["role"] for m in second["new"]] == ["visitor"]
     conversation.refresh_from_db()
     assert conversation.status == Conversation.Status.OPEN
     assert conversation.awaiting_reply
@@ -127,7 +124,6 @@ def test_visitors_can_only_reach_their_own_conversation(handed_off):
     stranger = Client()
     assert stranger.get(reverse("concierge:chat-live")).status_code == 404
     assert stranger.post(reverse("concierge:chat-typing")).status_code == 404
-    # Even guessing an id in the query string reveals nothing: the conversation comes from the session.
     assert stranger.get(reverse("concierge:chat-live"), {"conversation": conversation.pk}).status_code == 404
 
 
@@ -143,7 +139,7 @@ def test_inbox_list_partial_marks_conversations_awaiting_reply(handed_off, staff
     say(client, "Is anyone there?")
     html = staff.get(reverse("crm:inbox"), {"partial": "list"}).content.decode()
     assert "Awaiting reply" in html
-    assert 'hx-swap-oob="true"' in html  # conversation count refreshes too
+    assert 'hx-swap-oob="true"' in html
 
 
 def test_live_demo_page_frames_site_and_compact_inbox(staff):
@@ -152,8 +148,8 @@ def test_live_demo_page_frames_site_and_compact_inbox(staff):
 
     embedded = staff.get(reverse("crm:inbox"), {"embed": "1"})
     page = embedded.content.decode()
-    assert 'class="bg-ivory embed' in page  # compact layout
-    assert "data-sidebar" not in page  # no staff sidebar inside the frame
+    assert 'class="bg-ivory embed' in page
+    assert "data-sidebar" not in page
     assert embedded["X-Frame-Options"] == "SAMEORIGIN"
 
 

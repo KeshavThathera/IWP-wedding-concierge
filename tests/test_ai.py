@@ -1,5 +1,3 @@
-"""The AI layer: a fake model stands in for Gemini, so these tests run offline."""
-
 import io
 import json
 import urllib.error
@@ -22,7 +20,7 @@ class FakeLLM:
         self.reply, self.error, self.calls = reply, error, []
 
     def generate(self, system, turns, *, temperature=0.6, max_tokens=400, json_schema=None, deadline=None):
-        if json_schema:  # routing requests: no opinion unless a test sets one
+        if json_schema:
             raise llm.LLMError("no routing opinion")
         self.calls.append({"system": system, "turns": turns})
         if self.error:
@@ -43,9 +41,6 @@ def say(client, text):
     return client.post(reverse("concierge:chat-message"), data=json.dumps({"text": text}), content_type="application/json").json()
 
 
-# Engine + model collaboration ------------------------------------------------------
-
-
 def test_question_mid_qualification_gets_answer_plus_next_question(fake_llm):
     state = ConciergeState()
     take_turn(state, "Plan my wedding")
@@ -56,13 +51,13 @@ def test_question_mid_qualification_gets_answer_plus_next_question(fake_llm):
     reply = state.messages[-1]
     assert reply.ai
     assert reply.text.startswith("December to February is ideal")
-    assert reply.text.endswith("Approximately how many guests are you hoping to welcome?")  # qualification continues
+    assert reply.text.endswith("Approximately how many guests are you hoping to welcome?")
     assert "Do not ask any question yourself" in fake_llm.calls[0]["system"]
 
 
 def test_question_is_not_recorded_as_an_answer():
     state = ConciergeState()
-    take_turn(state, "I’m planning a wedding in Goa")
+    take_turn(state, "I'm planning a wedding in Goa")
     turn = take_turn(state, "Is the monsoon a bad idea?")
     assert "guests" not in turn.flow.answers
 
@@ -135,9 +130,6 @@ def test_long_or_markdown_replies_are_cleaned(fake_llm):
     assert len(text.split("\n\n")[0]) <= 701
 
 
-# Through the web layer -------------------------------------------------------------
-
-
 @pytest.mark.django_db
 def test_chat_endpoint_marks_ai_messages(client, fake_llm):
     say(client, "Plan my wedding")
@@ -162,7 +154,7 @@ def test_handoff_uses_ai_summary_and_persists_ai_flags(client, fake_llm):
 @pytest.mark.django_db
 def test_handoff_summary_falls_back_to_rules(client, fake_llm):
     fake_llm.error = llm.LLMError("timeout")
-    data = say(client, "I’m planning a Jaipur wedding for 250 guests. Can I speak to someone?")
+    data = say(client, "I'm planning a Jaipur wedding for 250 guests. Can I speak to someone?")
     conversation = Conversation.objects.get(ticket=data["ticket"])
     assert not conversation.summary_ai
     assert "Jaipur · 250 guests" in conversation.summary
@@ -181,10 +173,7 @@ def test_staff_ai_draft_prefills_the_reply_box(client, fake_llm):
     assert fake_llm.reply in response.content.decode()
     assert "Review and edit before sending" in response.content.decode()
     assert "Rohan & Mira" in fake_llm.calls[0]["turns"][0].text
-    assert not conversation.messages.filter(role=Message.Role.AGENT).exists()  # nothing is sent automatically
-
-
-# REST client -----------------------------------------------------------------------
+    assert not conversation.messages.filter(role=Message.Role.AGENT).exists()
 
 
 def test_gemini_client_builds_the_documented_request(monkeypatch):
@@ -202,10 +191,10 @@ def test_gemini_client_builds_the_documented_request(monkeypatch):
 
     assert captured["url"].endswith("/models/gemini-test:generateContent")
     assert captured["headers"]["X-goog-api-key"] == "test-key"
-    assert captured["timeout"] == pytest.approx(5, abs=0.05)  # minus the microseconds already spent
+    assert captured["timeout"] == pytest.approx(5, abs=0.05)
     body = captured["body"]
     assert body["systemInstruction"]["parts"][0]["text"] == "Be kind"
-    assert body["contents"] == [{"role": "user", "parts": [{"text": "Hi\n\nAnyone there?"}]}]  # leading model turn dropped, users merged
+    assert body["contents"] == [{"role": "user", "parts": [{"text": "Hi\n\nAnyone there?"}]}]
     assert body["generationConfig"] == {"temperature": 0.3, "maxOutputTokens": 100, "thinkingConfig": {"thinkingLevel": "minimal"}}
 
 
@@ -264,7 +253,7 @@ def test_gemini_fails_over_to_the_next_model_only_when_unavailable(monkeypatch, 
         assert client.generate("s", [llm.Turn("user", "hi")]) == "Namaste!"
         assert called == ["primary", "fallback"]
     else:
-        with pytest.raises(llm.LLMError):  # configuration errors fail fast
+        with pytest.raises(llm.LLMError):
             client.generate("s", [llm.Turn("user", "hi")])
         assert called == ["primary"]
 
@@ -282,7 +271,7 @@ def test_get_client_builds_the_configured_model_chain(settings):
     settings.GEMINI_API_KEY = "k"
     settings.GEMINI_MODEL = "gemini-3.5-flash"
     settings.GEMINI_FALLBACK_MODELS = ["gemini-3.1-flash-lite", "gemini-3.5-flash"]
-    assert llm.get_client().models == ["gemini-3.5-flash", "gemini-3.1-flash-lite"]  # de-duplicated, order kept
+    assert llm.get_client().models == ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
 
 
 @pytest.mark.parametrize(
@@ -326,7 +315,7 @@ def test_a_failing_model_is_skipped_during_its_cooldown(monkeypatch):
     client = llm.GeminiClient("k", ["primary", "fallback"])
     client.generate("s", [llm.Turn("user", "hi")])
     client.generate("s", [llm.Turn("user", "hi again")])
-    assert called == ["primary", "fallback", "fallback"]  # no second wait on the rate-limited model
+    assert called == ["primary", "fallback", "fallback"]
 
 
 def test_one_deadline_covers_every_model(monkeypatch):
@@ -340,7 +329,7 @@ def test_one_deadline_covers_every_model(monkeypatch):
     client = llm.GeminiClient("k", ["a", "b", "c"], timeout=6)
     with pytest.raises(llm.LLMError):
         client.generate("s", [llm.Turn("user", "hi")], deadline=2)
-    assert timeouts and all(t <= 2 for t in timeouts)  # never the full 6 s per model
+    assert timeouts and all(t <= 2 for t in timeouts)
 
 
 @pytest.mark.django_db
@@ -350,10 +339,10 @@ def test_handoff_does_not_wait_for_the_ai_summary(client, fake_llm, settings, mo
     monkeypatch.setattr(
         "crm.services.threading.Thread", lambda target, args, daemon: type("T", (), {"start": lambda self: started.append(args)})()
     )
-    data = say(client, "I’m planning a Jaipur wedding for 250 guests. Can I speak to someone?")
+    data = say(client, "I'm planning a Jaipur wedding for 250 guests. Can I speak to someone?")
     conversation = Conversation.objects.get(ticket=data["ticket"])
-    assert not conversation.summary_ai  # rule-based summary straight away
-    assert started and started[0][0] == conversation.pk  # AI summary queued in the background
+    assert not conversation.summary_ai
+    assert started and started[0][0] == conversation.pk
 
 
 def test_the_fallback_model_keeps_part_of_the_budget(monkeypatch):
@@ -369,4 +358,4 @@ def test_the_fallback_model_keeps_part_of_the_budget(monkeypatch):
 
     monkeypatch.setattr(llm.urllib.request, "urlopen", urlopen)
     assert llm.GeminiClient("k", ["primary", "fallback"], timeout=6).generate("s", [llm.Turn("user", "hi")], deadline=4) == "Namaste!"
-    assert timeouts["primary"] == pytest.approx(2.4, abs=0.1)  # 60% of the 4 s budget, not all of it
+    assert timeouts["primary"] == pytest.approx(2.4, abs=0.1)

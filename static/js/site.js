@@ -1,4 +1,3 @@
-// Public-site interactions: solid nav on scroll and the destination explorer.
 (() => {
   const nav = document.getElementById("site-nav");
   if (nav) {

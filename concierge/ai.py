@@ -1,17 +1,3 @@
-"""Where the language model is allowed to help, and how.
-
-The deterministic engine stays in charge of routing, qualification and
-handoffs. The model only ever:
-
-1. answers an open question from a visitor (the engine's follow-up question
-   is appended afterwards, so qualification keeps moving);
-2. writes the handoff summary staff see in the inbox;
-3. drafts a reply for a staff member to review and edit.
-
-Every function returns None on any failure, and callers keep the rule-based
-result, so the concierge works identically with no API key at all.
-"""
-
 from __future__ import annotations
 
 import json
@@ -50,7 +36,6 @@ FREE_REPLY = "Respond helpfully to the visitor's latest message. You may end wit
 
 
 def _history(state: ConciergeState) -> list[LLMTurn]:
-    """Recent conversation, excluding the rule-based reply we may be replacing."""
     messages = state.messages[:-1] if state.messages and state.messages[-1].role == "assistant" else state.messages
     return [LLMTurn("user" if m.role == "visitor" else "model", m.text) for m in messages[-HISTORY_MESSAGES:]]
 
@@ -64,7 +49,7 @@ def _clean(text: str) -> str:
 
 
 def enhance_reply(state: ConciergeState, turn: Turn, text: str, budget_scope: str) -> bool:
-    """Let the model answer an open question (or replace the generic fallback). Returns True if it did."""
+    """Let Gemini answer an open question. Returns True if it did."""
     if turn.is_handoff or not (is_question(text) or turn.is_fallback):
         return False
     client = get_client()
@@ -83,7 +68,6 @@ def enhance_reply(state: ConciergeState, turn: Turn, text: str, budget_scope: st
 
 
 def summarise_handoff(state: ConciergeState, department: str) -> str | None:
-    """A two-sentence brief for the receiving team, or None to keep the rule-based summary."""
     client = get_client()
     if client is None or not within_budget("handoff"):
         return None
@@ -106,7 +90,6 @@ def summarise_handoff(state: ConciergeState, department: str) -> str | None:
 
 
 def draft_staff_reply(transcript: list[tuple[str, str]], customer: str, department: str, agent_name: str) -> str | None:
-    """Suggest a reply for a staff member to edit before sending. ``transcript`` is (speaker, text) pairs."""
     client = get_client()
     if client is None or not within_budget(f"staff:{agent_name}"):
         return None
@@ -163,7 +146,6 @@ class AIRoute:
 
 
 def classify_department(state: ConciergeState, budget_scope: str = "routing") -> AIRoute | None:
-    """Ask the model which team should take over. None if unavailable or the answer is invalid."""
     client = get_client()
     if client is None or not within_budget(budget_scope):
         return None

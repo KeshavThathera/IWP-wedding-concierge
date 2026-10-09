@@ -1,5 +1,3 @@
-"""Business operations shared by views, the API and tests."""
-
 import copy
 import logging
 import secrets
@@ -17,11 +15,11 @@ from concierge.routing import RoutingDecision
 from .models import Conversation, Lead, Message
 
 HANDOFF_CONFIRMATION = (
-    "Thank you. I’m connecting you with our {department} team, {blurb}. Someone will join this chat shortly. Your reference is {ticket}."
+    "Thank you. I'm connecting you with our {department} team, {blurb}. Someone will join this chat shortly. Your reference is {ticket}."
 )
 logger = logging.getLogger(__name__)
-WAITING_ACK = "Thank you, I’ve added that to your conversation. The team will reply right here as soon as someone joins."
-TYPING_TTL = 5  # seconds a typing signal stays fresh
+WAITING_ACK = "Thank you, I've added that to your conversation. The team will reply right here as soon as someone joins."
+TYPING_TTL = 5  # seconds
 
 
 def new_ticket() -> str:
@@ -31,11 +29,7 @@ def new_ticket() -> str:
             return ticket
 
 
-# Handoff --------------------------------------------------------------------------
-
-
 def create_handoff(state: ConciergeState, routing: RoutingDecision | None = None) -> Conversation:
-    """Persist a finished concierge conversation as a live ticket (and a lead for wedding enquiries)."""
     if routing and routing.department:
         state.department = routing.department
     department = state.department
@@ -44,11 +38,11 @@ def create_handoff(state: ConciergeState, routing: RoutingDecision | None = None
         summary = f"Wedding enquiry from the website concierge: {details.summary_line()}. Visitor asked to be introduced to a planner."
     else:
         summary = f"New {department.lower()} enquiry from the website concierge. Visitor requested a human handoff."
-    snapshot = copy.deepcopy(state)  # the transcript as it stood at handoff, for the AI summary
+    snapshot = copy.deepcopy(state)
     with transaction.atomic():
         conversation = _persist_handoff(state, details, summary, summary_ai=False, routing=routing)
 
-    # The visitor is connected now; the AI summary (a slow network call) replaces the rule-based one when ready.
+    # the AI summary is slow, so write it after the visitor is connected
     if settings.AI_SUMMARY_IN_BACKGROUND:
         threading.Thread(target=_write_ai_summary, args=(conversation.pk, snapshot, department), daemon=True).start()
     else:
@@ -61,11 +55,11 @@ def _write_ai_summary(conversation_id: int, state: ConciergeState, department: s
     try:
         if ai_summary := summarise_handoff(state, department):
             Conversation.objects.filter(pk=conversation_id).update(summary=ai_summary, summary_ai=True)
-    except Exception:  # never let a background summary failure surface anywhere
+    except Exception:
         logger.exception("AI summary failed for conversation %s", conversation_id)
     finally:
         if settings.AI_SUMMARY_IN_BACKGROUND:
-            close_old_connections()  # this thread opened its own database connection
+            close_old_connections()
 
 
 def _persist_handoff(state: ConciergeState, details, summary: str, *, summary_ai: bool, routing: RoutingDecision | None) -> Conversation:
@@ -111,9 +105,6 @@ def _persist_handoff(state: ConciergeState, details, summary: str, *, summary_ai
     return conversation
 
 
-# Live chat ------------------------------------------------------------------------
-
-
 def _touch(conversation: Conversation, status: str | None = None) -> None:
     conversation.updated_at = timezone.now()
     fields = ["updated_at"]
@@ -128,26 +119,24 @@ def add_system_message(conversation: Conversation, text: str) -> Message:
 
 
 def add_visitor_message(conversation: Conversation, text: str) -> list[Message]:
-    """A visitor writes after handoff. Returns the new messages (theirs, plus a one-off ack while nobody has joined)."""
     created = [Message.objects.create(conversation=conversation, role=Message.Role.VISITOR, text=text, created_at=timezone.now())]
     if conversation.assigned_to_id is None and not conversation.messages.filter(role=Message.Role.ASSISTANT, text=WAITING_ACK).exists():
         created.append(
             Message.objects.create(conversation=conversation, role=Message.Role.ASSISTANT, text=WAITING_ACK, created_at=timezone.now())
         )
     clear_typing(conversation.pk, "visitor")
-    _touch(conversation, Conversation.Status.OPEN)  # the ball is in the team's court
+    _touch(conversation, Conversation.Status.OPEN)
     return created
 
 
 def post_staff_reply(conversation: Conversation, user, text: str) -> Message:
     message = Message.objects.create(conversation=conversation, role=Message.Role.AGENT, author=user, text=text, created_at=timezone.now())
     clear_typing(conversation.pk, "agent")
-    _touch(conversation, Conversation.Status.WAITING)  # now waiting on the customer
+    _touch(conversation, Conversation.Status.WAITING)
     return message
 
 
 def assign(conversation: Conversation, user) -> None:
-    """Give the conversation to ``user`` and tell the visitor someone has joined."""
     if conversation.assigned_to_id == user.pk:
         return
     conversation.assigned_to = user
@@ -184,9 +173,6 @@ def live_status(conversation: Conversation) -> str:
 
 def _name(user) -> str:
     return user.get_full_name() or user.username
-
-
-# Typing indicators (short-lived cache flags; no database writes) --------------------
 
 
 def set_typing(conversation_id: int, who: str) -> None:

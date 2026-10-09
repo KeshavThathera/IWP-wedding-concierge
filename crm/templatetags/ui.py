@@ -1,5 +1,3 @@
-"""Presentation helpers available in every template (registered as a builtin)."""
-
 from datetime import timedelta
 
 from django import template
@@ -65,7 +63,6 @@ def initials(name: str) -> str:
 
 @register.filter
 def ago(value) -> str:
-    """Compact relative time: 'Just now', '4 min', '3 hr', 'Yesterday', '2 days'."""
     if not value:
         return ""
     delta = timezone.now() - value

@@ -1,5 +1,3 @@
-"""Routing a conversation to the right team when the visitor asks for a person."""
-
 import json
 
 import pytest
@@ -12,7 +10,7 @@ from crm.models import Conversation
 
 D = Department
 
-# Realistic handoffs. "ASK" means the conversation genuinely doesn't say which team is needed.
+# "ASK" = not enough information to pick a team
 SCENARIOS = [
     (
         D.CLIENT_SERVICING,
@@ -72,7 +70,7 @@ def test_rules_route_every_scenario_correctly_or_ask(expected, messages):
 @pytest.mark.parametrize(
     ("text", "department"),
     [
-        ("I need a photographer for my wedding", D.WEDDING_SALES),  # seeking a vendor = a couple
+        ("I need a photographer for my wedding", D.WEDDING_SALES),
         ("My partner and I are getting married", D.WEDDING_SALES),
         ("We would love to partner with IWP", D.VENDORS),
         ("What's the cost per person for a sangeet?", D.WEDDING_SALES),
@@ -86,9 +84,6 @@ def test_ambiguous_words_resolve_correctly(text, department):
 def test_ordinary_questions_are_not_handoff_requests(text):
     _, turn = converse([text])
     assert not turn.is_handoff
-
-
-# Policy: Gemini first (when confident), then rules, then ask ---------------------------
 
 
 class RoutingLLM:
@@ -117,7 +112,7 @@ def with_llm():
 
 def test_confident_ai_decision_wins_and_notes_disagreement(with_llm):
     with_llm(department="Client Servicing", confidence=0.92)
-    state, _ = converse(["Plan a wedding in Goa for 200 guests", "Can someone call me?"])  # rules say Wedding Sales
+    state, _ = converse(["Plan a wedding in Goa for 200 guests", "Can someone call me?"])
     decision = decide_team(state)
     assert (decision.department, decision.source) == (D.CLIENT_SERVICING, "ai")
     assert "keyword rules suggested Wedding Sales" in decision.reason
@@ -143,9 +138,6 @@ def test_nobody_sure_means_ask_the_visitor(with_llm):
     with_llm(department="General Support", confidence=0.5)
     state, _ = converse(["Hi", "I want to talk to a human"])
     assert decide_team(state).department is None
-
-
-# Through the chat endpoint ------------------------------------------------------------
 
 
 def say(client, text):
@@ -202,7 +194,6 @@ def test_ai_routing_is_stored_for_staff(client, with_llm):
 
 
 def test_ai_guess_without_any_evidence_is_not_trusted(with_llm):
-    # "I want to talk to a human" names no need: an 85%-confident guess of Wedding Sales must not route it.
     with_llm(department="Wedding Sales", confidence=0.85)
     state, _ = converse(["Hello", "I want to talk to a human"])
     assert decide_team(state).department is None
@@ -222,13 +213,13 @@ def test_more_ways_of_asking_for_a_person(text):
 
 def test_vague_request_continues_the_conversations_topic():
     state, _ = converse(["Plan my wedding", "Jaipur", "December 2027", "Around 2 crore", "Palace", "Can someone call me?"])
-    decision = decide_team(state)  # no AI configured in tests
+    decision = decide_team(state)
     assert decision.department == D.WEDDING_SALES
 
 
 @pytest.mark.django_db
 def test_accepting_the_concierges_offer_goes_straight_to_that_team(client):
-    for text in ["I’m planning a Jaipur wedding for 250 guests.", "December 2027", "Around ₹1.5–2 Cr", "Palace", "WhatsApp"]:
+    for text in ["I'm planning a Jaipur wedding for 250 guests.", "December 2027", "Around ₹1.5-2 Cr", "Palace", "WhatsApp"]:
         say(client, text)
     data = say(client, "Yes please")
     conversation = Conversation.objects.get(ticket=data["ticket"])

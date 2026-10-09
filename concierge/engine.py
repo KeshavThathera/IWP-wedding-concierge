@@ -1,19 +1,3 @@
-"""Deterministic concierge engine.
-
-Pure Python with no Django imports, so the routing and qualification rules can
-be unit-tested in isolation. The web layer stores a ``ConciergeState`` in the
-visitor's session and calls :func:`take_turn` for each message.
-
-Flow:
-1. Detect the visitor's language (English vs Hindi/Hinglish) and department.
-2. Wedding Sales enquiries are qualified one detail at a time (destination,
-   guests, date, budget, style, contact); details volunteered early are
-   recognised so the visitor is never asked twice.
-3. Other departments collect a contact detail, then offer a human handoff.
-4. Asking for a person, or accepting an offered handoff, ends the turn with a
-   handoff, which the web layer turns into a ticket in the staff inbox.
-"""
-
 from __future__ import annotations
 
 import re
@@ -47,7 +31,7 @@ SLOT_ORDER: tuple[Slot, ...] = tuple(Slot)
 QUESTION_FACT_SLOTS = frozenset({Slot.DESTINATION, Slot.GUESTS})
 
 OPENING = (
-    "Namaste, and welcome. I’m the IWP wedding concierge. I can help you explore destinations, "
+    "Namaste, and welcome. I'm the IWP wedding concierge. I can help you explore destinations, "
     "begin planning your celebration or reach the right member of our team. How may I help?"
 )
 QUICK_ACTIONS = (
@@ -75,12 +59,12 @@ SLOT_PATTERNS: dict[Slot, re.Pattern[str]] = {
 
 QUESTIONS: dict[Lang, dict[Slot, str]] = {
     "en": {
-        Slot.DESTINATION: "How lovely. Is there a destination—or a kind of setting—you find yourselves drawn to?",
+        Slot.DESTINATION: "How lovely. Is there a destination, or a kind of setting, you find yourselves drawn to?",
         Slot.GUESTS: "Approximately how many guests are you hoping to welcome?",
         Slot.DATE: "Which month or season are you considering for the celebration?",
         Slot.BUDGET: "Do you have a comfortable budget range in mind? An approximate figure is perfectly fine.",
         Slot.STYLE: "Which setting feels most like you: a palace, a fort, a lakeside terrace, a beach or a resort?",
-        Slot.CONTACT: "Finally, how would you prefer our planners reach you—phone, WhatsApp or email?",
+        Slot.CONTACT: "Finally, how would you prefer our planners reach you: phone, WhatsApp or email?",
     },
     "hi": {
         Slot.DESTINATION: "Bahut sundar! Aap kis destination ya kis tarah ki setting ke baare mein soch rahe hain?",
@@ -88,29 +72,27 @@ QUESTIONS: dict[Lang, dict[Slot, str]] = {
         Slot.DATE: "Shaadi ke liye kaun sa mahina ya season soch rahe hain?",
         Slot.BUDGET: "Kya aapke mann mein koi budget range hai? Andaaza bhi kaafi hai.",
         Slot.STYLE: "Aapko kaun si setting sabse zyada pasand hai: palace, fort, lakeside, beach ya resort?",
-        Slot.CONTACT: "Aakhir mein, hamare planners aapse kaise sampark karein—phone, WhatsApp ya email?",
+        Slot.CONTACT: "Aakhir mein, hamare planners aapse kaise sampark karein: phone, WhatsApp ya email?",
     },
 }
 
 DESTINATION_INTROS = {
-    "jaipur": "Jaipur is extraordinary for heritage-palace celebrations—courtyards, mirrored halls and a truly royal scale.",
-    "udaipur": "Udaipur is made for lakeside grandeur—sunset terraces, palace views across the water and an intimate elegance.",
+    "jaipur": "Jaipur is extraordinary for heritage-palace celebrations, with courtyards, mirrored halls and a truly royal scale.",
+    "udaipur": "Udaipur is made for lakeside grandeur: sunset terraces, palace views across the water and an intimate elegance.",
     "jodhpur": "Jodhpur brings drama: fort ramparts, desert evenings and the blue city glowing below.",
-    "goa": "Goa suits relaxed, barefoot celebrations—sunlit beaches and multi-day festivities by the sea.",
+    "goa": "Goa suits relaxed, barefoot celebrations with sunlit beaches and multi-day festivities by the sea.",
     "kerala": "Kerala offers serene backwater and coastal settings, lush and wonderfully calm.",
 }
 
 DEPARTMENT_OPENERS = {
-    Department.HR_CAREERS: "Thank you for your interest in joining us. I’ve noted this for our HR and Careers team. What email address should they use to reach you?",
-    Department.VENDORS: "How lovely—we always enjoy meeting new creative partners. Could you share your name or studio name, along with a contact email?",
-    Department.CLIENT_SERVICING: "I understand this may be time-sensitive, and I’ve marked it as a priority for Client Servicing. Shall I connect you with a team member now?",
-    Department.FINANCE: "Of course. I’ve routed this to our Finance team. Please share your name and the email linked to your booking—no card or bank details, please.",
-    Department.MARKETING: "Thank you for reaching out. I’ve noted this for Marketing and PR. Could you share your publication or brand, and a contact email?",
+    Department.HR_CAREERS: "Thank you for your interest in joining us. I've noted this for our HR and Careers team. What email address should they use to reach you?",
+    Department.VENDORS: "How lovely, we always enjoy meeting new creative partners. Could you share your name or studio name, along with a contact email?",
+    Department.CLIENT_SERVICING: "I understand this may be time-sensitive, and I've marked it as a priority for Client Servicing. Shall I connect you with a team member now?",
+    Department.FINANCE: "Of course. I've routed this to our Finance team. Please share your name and the email linked to your booking. No card or bank details, please.",
+    Department.MARKETING: "Thank you for reaching out. I've noted this for Marketing and PR. Could you share your publication or brand, and a contact email?",
 }
 
-# Routing signals: (pattern, weight). Strong, specific phrases outweigh generic wedding words,
-# so "our wedding is next week and the decorator hasn't confirmed" is an existing client,
-# and "wedding photographer keen to partner" is a vendor.
+# (pattern, weight) per team. Specific phrases outweigh generic wedding words.
 DEPARTMENT_SIGNALS: dict[Department, tuple[tuple[re.Pattern[str], float], ...]] = {
     Department.CLIENT_SERVICING: (
         (
@@ -165,7 +147,7 @@ DEPARTMENT_SIGNALS: dict[Department, tuple[tuple[re.Pattern[str], float], ...]] 
             ),
             3,
         ),
-        # Offering services, not seeking them: "I need a photographer" is a couple, so bare job titles don't count.
+        # offering services (not looking for them)
         (
             re.compile(
                 r"(photographer|videographer|decorator|florist|caterer|makeup artist)s? here\b|keen to (partner|collaborate)"
@@ -196,7 +178,6 @@ DEPARTMENT_SIGNALS: dict[Department, tuple[tuple[re.Pattern[str], float], ...]] 
         (re.compile(r"wedding|venue|" + "|".join(DESTINATIONS) + r"|guests?|budget|engagement|sangeet|reception|शादी|shaadi", re.I), 1),
     ),
 }
-# Tie-break order: more specific needs first.
 DEPARTMENT_PRIORITY = (
     Department.CLIENT_SERVICING,
     Department.FINANCE,
@@ -205,7 +186,7 @@ DEPARTMENT_PRIORITY = (
     Department.MARKETING,
     Department.WEDDING_SALES,
 )
-ROUTING_CONFIDENCE = 0.6  # share of the routing evidence the leading team needs before we trust it
+ROUTING_CONFIDENCE = 0.6
 
 TEAM_CHOICES: dict[str, Department] = {
     "Planning a new wedding": Department.WEDDING_SALES,
@@ -217,7 +198,7 @@ TEAM_CHOICES: dict[str, Department] = {
     "Something else": Department.GENERAL,
 }
 TEAM_QUESTION: dict[Lang, str] = {
-    "en": "Of course, I’ll connect you with the right person. Which of these best describes what you need?",
+    "en": "Of course, I'll connect you with the right person. Which of these best describes what you need?",
     "hi": "Zaroor, main aapko sahi team se jodta hoon. Aapko kis cheez mein madad chahiye?",
 }
 TEAM_BLURBS: dict[Department, str] = {
@@ -266,7 +247,6 @@ TOPIC_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 
 def is_question(text: str) -> bool:
-    """True for open questions the visitor wants answered, as opposed to answers to ours."""
     return bool(QUESTION.search(text.strip()))
 
 
@@ -274,20 +254,19 @@ def detect_lang(text: str) -> Lang:
     return "hi" if HINGLISH.search(text) else "en"
 
 
-MIN_EVIDENCE = 0.5  # roughly one generic mention in the previous message
-RECENCY_DECAY = 0.6  # each earlier message counts 60% as much as the one after it: needs change mid-chat
-WEAK_SIGNAL = 1  # generic words ("wedding", "guests") that only count when nothing more specific is said
+MIN_EVIDENCE = 0.5
+RECENCY_DECAY = 0.6  # each older message counts 60% of the next one
+WEAK_SIGNAL = 1
 
 
 def score_departments(texts: list[str]) -> dict[Department, float]:
-    """Weighted evidence per team, dominated by the latest messages."""
     scores = dict.fromkeys(DEPARTMENT_PRIORITY, 0.0)
     for i, text in enumerate(texts):
         recency = RECENCY_DECAY ** (len(texts) - 1 - i)
         found = {d: max((w for pattern, w in signals if pattern.search(text)), default=0) for d, signals in DEPARTMENT_SIGNALS.items()}
         strongest = max(found.values())
         for department, weight in found.items():
-            # "Change our guest count" is a client request: its "guest" shouldn't also vote for Wedding Sales.
+            # skip weak words when the message already has a strong signal
             if weight <= WEAK_SIGNAL < strongest:
                 continue
             scores[department] += recency * weight
@@ -302,18 +281,16 @@ def detect_department(text: str, current: Department | None = None) -> Departmen
 
 @dataclass
 class RuleRoute:
-    department: Department | None  # None when the evidence is too weak or split to trust
+    department: Department | None  # None = not sure
     confidence: float
     scores: dict[Department, float]
 
     @property
     def evidence(self) -> float:
-        """Total routing signal found; 0 means the conversation names no team-specific need."""
         return sum(self.scores.values())
 
 
 def route_by_rules(texts: list[str]) -> RuleRoute:
-    """Which team the whole conversation points to, judged by weighted rules."""
     scores = score_departments(texts)
     total = sum(scores.values())
     best = max(DEPARTMENT_PRIORITY, key=lambda d: (scores[d], -DEPARTMENT_PRIORITY.index(d)))
@@ -323,7 +300,6 @@ def route_by_rules(texts: list[str]) -> RuleRoute:
 
 
 def team_from_choice(text: str) -> Department | None:
-    """Map a tapped team button (or close wording) to a department."""
     cleaned = text.strip().lower()
     for label, department in TEAM_CHOICES.items():
         if cleaned == label.lower():
@@ -333,7 +309,6 @@ def team_from_choice(text: str) -> Department | None:
 
 
 def classify_topics(text: str) -> list[str]:
-    """Topics mentioned in a piece of visitor text, used for analytics."""
     return [name for name, pattern in TOPIC_RULES if pattern.search(text)]
 
 
@@ -343,19 +318,17 @@ class Flow:
     answers: dict[str, str] = field(default_factory=dict)
     offered: bool = False
     contact_asked: bool = False
-    choosing_team: bool = False  # We asked the visitor which team they need
+    choosing_team: bool = False
 
 
 @dataclass
 class Turn:
-    """Result of one visitor message. ``reply`` is None when a handoff is due."""
-
     reply: str | None
     department: Department
     flow: Flow
     lang: Lang
-    team_chosen: bool = False  # The visitor picked the team themselves
-    accepted_offer: bool = False  # The visitor said yes to "Shall I connect you with our X team?"
+    team_chosen: bool = False
+    accepted_offer: bool = False
 
     @property
     def is_handoff(self) -> bool:
@@ -363,12 +336,11 @@ class Turn:
 
     @property
     def is_fallback(self) -> bool:
-        """The rules had nothing specific to say, so a language model may answer instead."""
         return self.reply in FALLBACKS.values()
 
 
 def respond(text: str, department: Department, flow: Flow, lang: Lang) -> tuple[str | None, Flow]:
-    """Decide the next reply for ``text``. Returns (None, flow) to request a handoff."""
+    """Returns (None, flow) when the visitor should be handed off."""
     nxt = Flow(asked=list(flow.asked), answers=dict(flow.answers), offered=flow.offered, contact_asked=flow.contact_asked)
     stripped = text.strip()
     if HUMAN_REQUEST.search(text) or (flow.offered and AFFIRMATIVE.match(stripped)):
@@ -377,7 +349,7 @@ def respond(text: str, department: Department, flow: Flow, lang: Lang) -> tuple[
         nxt.offered = False
         if lang == "hi":
             return "Bilkul, koi jaldi nahi. Main aur kis tarah madad kar sakta hoon?", nxt
-        return "Of course—there’s no rush. Is there anything else you’d like to explore?", nxt
+        return "Of course, there's no rush. Is there anything else you'd like to explore?", nxt
 
     if department == Department.WEDDING_SALES:
         return _qualify_wedding(text, flow, nxt, lang)
@@ -389,17 +361,15 @@ def respond(text: str, department: Department, flow: Flow, lang: Lang) -> tuple[
         return opener, nxt
     if opener:
         nxt.offered = True
-        return f"Thank you, that’s noted. Shall I pass this conversation to our {department} team now?", nxt
+        return f"Thank you, that's noted. Shall I pass this conversation to our {department} team now?", nxt
     return FALLBACKS[lang], nxt
 
 
 def _qualify_wedding(text: str, flow: Flow, nxt: Flow, lang: Lang) -> tuple[str, Flow]:
-    # The latest message answers whatever was asked last (unless the visitor asked us something
-    # instead); patterns catch details volunteered early.
+    # the reply answers the last question asked, unless it's a question itself
     if flow.asked and flow.asked[-1] not in nxt.answers and not is_question(text):
         nxt.answers[flow.asked[-1]] = text
-    # In a question, only destination and guest count are facts ("Can we host 300 guests in Goa?");
-    # a date, budget or style mentioned in a question is hypothetical ("How much is a palace wedding?").
+    # inside a question only destination and guests count as facts
     asking = is_question(text)
     for slot in SLOT_ORDER:
         if asking and slot not in QUESTION_FACT_SLOTS:
@@ -411,7 +381,7 @@ def _qualify_wedding(text: str, flow: Flow, nxt: Flow, lang: Lang) -> tuple[str,
         nxt.asked.append(Slot.GUESTS.value)
         return (
             "A meaningful estimate depends on guest count, destination, venue exclusivity and the number of events. "
-            "Shall we begin with how many guests you’re expecting?"
+            "Shall we begin with how many guests you're expecting?"
         ), nxt
 
     city = next((c for c in DESTINATION_INTROS if c in text.lower()), None) if Slot.DESTINATION.value not in flow.answers else None
@@ -427,25 +397,23 @@ def _qualify_wedding(text: str, flow: Flow, nxt: Flow, lang: Lang) -> tuple[str,
     nxt.offered = True
     if lang == "hi":
         return "Shukriya! Ek planner ke liye zaroori sab kuch mil gaya hai. Kya main aapko hamari Wedding Sales team se jod doon?", nxt
-    return "Thank you—that’s everything a planner needs to begin. Shall I introduce you to our Wedding Sales team?", nxt
+    return "Thank you, that's everything a planner needs to begin. Shall I introduce you to our Wedding Sales team?", nxt
 
 
 @dataclass
 class ChatMessage:
     role: Literal["visitor", "assistant"]
     text: str
-    ai: bool = False  # Written (at least partly) by the language model
+    ai: bool = False
 
 
 @dataclass
 class ConciergeState:
-    """Everything needed to resume a conversation; serialisable to the session."""
-
     messages: list[ChatMessage] = field(default_factory=lambda: [ChatMessage("assistant", OPENING)])
     department: Department = Department.GENERAL
     flow: Flow = field(default_factory=Flow)
     ticket: str | None = None
-    conversation_id: int | None = None  # Set once handed off; the database then owns the transcript
+    conversation_id: int | None = None  # set after handoff
 
     @property
     def visitor_texts(self) -> list[str]:
@@ -470,12 +438,10 @@ class ConciergeState:
 
 
 def take_turn(state: ConciergeState, text: str) -> Turn:
-    """Advance ``state`` with a visitor message. Mutates and returns the turn result."""
     text = text.strip()
-    # Once a visitor writes in Hindi or Hinglish, keep replying that way.
+    # stay in Hinglish once the visitor uses it
     lang = detect_lang(" ".join([*state.visitor_texts, text]))
     if state.flow.choosing_team:
-        # Whatever they answer, connect them now: their pick, a clear signal, or General Support to triage.
         state.messages.append(ChatMessage("visitor", text))
         state.department = team_from_choice(text) or Department.GENERAL
         state.flow = Flow()
@@ -495,7 +461,6 @@ def take_turn(state: ConciergeState, text: str) -> Turn:
 
 
 def ask_for_team(state: ConciergeState, lang: Lang) -> None:
-    """The visitor wants a person but we can't tell which team: ask, with one-tap choices."""
     state.messages.append(ChatMessage("assistant", TEAM_QUESTION[lang]))
     state.flow = Flow(choosing_team=True)
 
@@ -524,13 +489,13 @@ class LeadDetails:
 
 
 BUDGET_PATTERN = re.compile(
-    r"(?:₹|rs\.?|inr)\s*[\d.]+\s*(?:[-–]\s*[\d.]+)?\s*(?:cr|crore|l|lakh)?|[\d.]+\s*(?:[-–]\s*[\d.]+)?\s*(?:lakh|crore|cr)\b", re.I
+    r"(?:₹|rs\.?|inr)\s*[\d.]+\s*(?:[-\u2013]\s*[\d.]+)?\s*(?:cr|crore|l|lakh)?|[\d.]+\s*(?:[-\u2013]\s*[\d.]+)?\s*(?:lakh|crore|cr)\b",
+    re.I,
 )
 CONTACT_PATTERN = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+|\+?\d[\d\s-]{8,}\d")
 
 
 def extract_lead(state: ConciergeState) -> LeadDetails:
-    """Pull structured lead fields out of a wedding conversation."""
     answers = state.flow.answers
     everything = " ".join(state.visitor_texts)
 

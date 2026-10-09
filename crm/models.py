@@ -45,7 +45,6 @@ class Conversation(models.Model):
 
     @property
     def awaiting_reply(self) -> bool:
-        """No one on the team has answered since the visitor last wrote (automated replies don't count)."""
         if self.status == self.Status.RESOLVED:
             return False
         human = (Message.Role.VISITOR, Message.Role.AGENT)
@@ -62,7 +61,7 @@ class Message(models.Model):
         VISITOR = "visitor", "Visitor"
         ASSISTANT = "assistant", "Concierge"
         AGENT = "agent", "Staff"
-        SYSTEM = "system", "System"  # join / leave / close events shown to both sides
+        SYSTEM = "system", "System"
 
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
     role = models.CharField(max_length=10, choices=Role.choices)

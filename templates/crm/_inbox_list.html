@@ -1,4 +1,3 @@
-{# Conversation list items. Polled every few seconds (innerHTML swap keeps the scroll position). #}
 {% if request.GET.partial == "list" %}<span id="inbox-count" hx-swap-oob="true">{{ conversations|length }} conversation{{ conversations|length|pluralize }}</span>{% endif %}
 {% for c in conversations %}
 <a href="?c={{ c.pk }}&department={{ department|urlencode }}&status={{ status }}"

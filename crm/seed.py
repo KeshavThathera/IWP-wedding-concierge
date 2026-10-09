@@ -1,5 +1,3 @@
-"""Fictional demo data. All names and contact details are invented."""
-
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
@@ -13,7 +11,7 @@ from .models import Conversation, Lead, Message
 
 DEMO_USERNAME = "demo"
 DEMO_EMAIL = "demo@iwp.local"
-DEMO_PASSWORD = "demo123"  # Intentionally public: shown on the login page of this demo.
+DEMO_PASSWORD = "demo123"  # shown on the login page
 
 C, P, S = Conversation, Conversation.Priority, Conversation.Status
 
@@ -25,12 +23,12 @@ CONVERSATIONS = [
         Department.WEDDING_SALES,
         S.OPEN,
         P.HIGH,
-        "December Jaipur wedding for 250 guests; ₹1.5–2 Cr budget; palace venue preferred.",
+        "December Jaipur wedding for 250 guests; ₹1.5-2 Cr budget; palace venue preferred.",
         4,
         [
             ("visitor", "We are planning a Jaipur wedding for 250 guests in December."),
             ("assistant", "Wonderful. Do you have a working budget range?"),
-            ("visitor", "Around ₹1.5–2 Cr, and we love palace venues."),
+            ("visitor", "Around ₹1.5-2 Cr, and we love palace venues."),
         ],
     ),
     (
@@ -67,11 +65,11 @@ CONVERSATIONS = [
         Department.HR_CAREERS,
         S.OPEN,
         P.LOW,
-        "Event producer with four years’ experience asking about career opportunities.",
+        "Event producer with four years' experience asking about career opportunities.",
         60,
         [
             ("visitor", "I would like to apply for a role in wedding production."),
-            ("assistant", "I’ve routed your enquiry to HR and Careers. Please share your preferred contact email."),
+            ("assistant", "I've routed your enquiry to HR and Careers. Please share your preferred contact email."),
         ],
     ),
     (
@@ -96,8 +94,8 @@ CONVERSATIONS = [
         "Fictional wedding photography studio proposing a vendor collaboration.",
         60 * 26,
         [
-            ("visitor", "I’m a photographer and we would love to collaborate."),
-            ("assistant", "Thank you. I’ll route your portfolio enquiry to Vendors and Partnerships."),
+            ("visitor", "I'm a photographer and we would love to collaborate."),
+            ("assistant", "Thank you. I'll route your portfolio enquiry to Vendors and Partnerships."),
         ],
     ),
     (
@@ -109,8 +107,8 @@ CONVERSATIONS = [
         "Existing client needs urgent assistance with a guest airport transfer.",
         60 * 28,
         [
-            ("visitor", "I’m already a client and need urgent help with tomorrow’s airport transfer."),
-            ("assistant", "I’m prioritising this for Client Servicing now."),
+            ("visitor", "I'm already a client and need urgent help with tomorrow's airport transfer."),
+            ("assistant", "I'm prioritising this for Client Servicing now."),
         ],
     ),
     (
@@ -121,19 +119,19 @@ CONVERSATIONS = [
         P.MEDIUM,
         "Existing enquiry requesting a copy of a demo invoice.",
         60 * 50,
-        [("visitor", "I need an invoice copy, please."), ("assistant", "I’ve routed this to Finance for follow-up.")],
+        [("visitor", "I need an invoice copy, please."), ("assistant", "I've routed this to Finance for follow-up.")],
     ),
 ]
 
 L = Lead.Stage
 # (name, contact, destination, guests, budget, date, style, method, stage, score, days ago)
 LEADS = [
-    ("Aanya Mehra", "aanya@example.com", "Jaipur", 250, "₹1.5–2 Cr", "December 2027", "Heritage palace", "WhatsApp", L.QUALIFIED, 92, 0),
-    ("Rohan & Mira", "+91 90000 01002", "Goa", 180, "₹80L–1.2 Cr", "February 2028", "Beach resort", "Phone", L.NEW, 78, 0),
-    ("Kabir Sethi", "kabir@example.com", "Udaipur", 90, "₹50–80L", "November 2027", "Lakeside", "Email", L.CONTACTED, 84, 1),
+    ("Aanya Mehra", "aanya@example.com", "Jaipur", 250, "₹1.5-2 Cr", "December 2027", "Heritage palace", "WhatsApp", L.QUALIFIED, 92, 0),
+    ("Rohan & Mira", "+91 90000 01002", "Goa", 180, "₹80L-1.2 Cr", "February 2028", "Beach resort", "Phone", L.NEW, 78, 0),
+    ("Kabir Sethi", "kabir@example.com", "Udaipur", 90, "₹50-80L", "November 2027", "Lakeside", "Email", L.CONTACTED, 84, 1),
     ("Tara Anand", "tara@example.com", "Jodhpur", 320, "₹2 Cr+", "January 2028", "Fort", "WhatsApp", L.CONSULTATION, 96, 3),
-    ("Neil Batra", "+91 90000 01005", "Kerala", 140, "₹80L–1.2 Cr", "March 2028", "Backwater resort", "Phone", L.PROPOSAL, 88, 5),
-    ("Ira & Veer", "ira.veer@example.com", "Udaipur", 120, "₹1.2–1.5 Cr", "October 2027", "Palace", "Email", L.CONVERTED, 98, 8),
+    ("Neil Batra", "+91 90000 01005", "Kerala", 140, "₹80L-1.2 Cr", "March 2028", "Backwater resort", "Phone", L.PROPOSAL, 88, 5),
+    ("Ira & Veer", "ira.veer@example.com", "Udaipur", 120, "₹1.2-1.5 Cr", "October 2027", "Palace", "Email", L.CONVERTED, 98, 8),
 ]
 
 
@@ -141,7 +139,7 @@ def ensure_demo_user():
     User = get_user_model()
     user, _ = User.objects.get_or_create(username=DEMO_USERNAME, defaults={"email": DEMO_EMAIL})
     user.email, user.first_name, user.last_name = DEMO_EMAIL, "Demo", "Manager"
-    user.is_staff = True  # Allows the Django admin, limited to the CRM models below.
+    user.is_staff = True
     user.set_password(DEMO_PASSWORD)
     user.save()
     user.user_permissions.set(Permission.objects.filter(content_type__app_label="crm"))
@@ -150,7 +148,6 @@ def ensure_demo_user():
 
 @transaction.atomic
 def seed_demo() -> None:
-    """Replace all CRM data with the fictional demo set."""
     Lead.objects.all().delete()
     Conversation.objects.all().delete()
     ensure_demo_user()

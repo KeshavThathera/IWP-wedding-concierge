@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-# Static assets (CSS, htmx) are committed pre-built, so Node is not needed in the image.
+# CSS and htmx are committed, no Node needed
 RUN DJANGO_SECRET_KEY=collectstatic-only python manage.py collectstatic --no-input
 
 EXPOSE 8000
