@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}IWP Wedding Concierge{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+<style>
+  html, body { background: transparent; overflow: hidden; }
+  @media (min-width: 420px) {
+    #concierge-widget[data-embed="true"] [data-chat-overlay] { padding: 24px; }
+    #concierge-widget[data-embed="true"] [role="dialog"] {
+      height: 720px;
+      max-height: calc(100dvh - 48px);
+      max-width: 430px;
+      border-radius: .75rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+  {% include "concierge/_chat.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/concierge.js' %}" defer></script>
+{% endblock %}
