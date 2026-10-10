@@ -6,6 +6,7 @@ app_name = "concierge"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("embed/", views.embed, name="embed"),
     path("concierge/state/", views.chat_state, name="chat-state"),
     path("concierge/messages/", views.chat_message, name="chat-message"),
     path("concierge/reset/", views.chat_reset, name="chat-reset"),
