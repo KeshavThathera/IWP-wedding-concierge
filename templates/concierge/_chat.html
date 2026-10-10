@@ -1,4 +1,4 @@
-<div id="concierge-widget" data-state-url="{% url 'concierge:chat-state' %}" data-message-url="{% url 'concierge:chat-message' %}" data-reset-url="{% url 'concierge:chat-reset' %}" data-live-url="{% url 'concierge:chat-live' %}" data-typing-url="{% url 'concierge:chat-typing' %}">
+<div id="concierge-widget"{% if embed %} data-embed="true"{% endif %} data-state-url="{% url 'concierge:chat-state' %}" data-message-url="{% url 'concierge:chat-message' %}" data-reset-url="{% url 'concierge:chat-reset' %}" data-live-url="{% url 'concierge:chat-live' %}" data-typing-url="{% url 'concierge:chat-typing' %}">
   <button type="button" data-chat-open aria-label="Open the wedding concierge" class="group fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-ink p-2.5 text-paper shadow-soft ring-1 ring-champagne/30 transition duration-300 hover:-translate-y-0.5 hover:bg-burgundy data-[hidden=true]:pointer-events-none data-[hidden=true]:translate-y-2 data-[hidden=true]:opacity-0 sm:pr-6">
     <span class="relative grid h-10 w-10 place-items-center rounded-full border border-champagne/40">
       {% monogram "h-6 w-6 text-champagne" %}
