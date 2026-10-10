@@ -31,6 +31,14 @@ def test_home_renders_with_csrf_cookie(client):
     assert "csrftoken" in response.cookies
 
 
+def test_embed_renders_widget_and_allows_framing(client):
+    response = client.get(reverse("concierge:embed"))
+    assert response.status_code == 200
+    assert b'data-embed="true"' in response.content
+    assert "csrftoken" in response.cookies
+    assert response.get("X-Frame-Options") is None
+
+
 def test_chat_state_starts_with_greeting(client):
     data = client.get(reverse("concierge:chat-state")).json()
     assert data["messages"][0]["role"] == "assistant"
