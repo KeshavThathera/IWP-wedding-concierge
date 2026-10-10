@@ -3,6 +3,7 @@ import json
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
@@ -88,6 +89,13 @@ def home(request: HttpRequest):
             "prompts": SAMPLE_PROMPTS,
         },
     )
+
+
+@ensure_csrf_cookie
+@xframe_options_exempt
+def embed(request: HttpRequest):
+    """Render the concierge alone so another site can host it in an iframe."""
+    return render(request, "concierge/embed.html", {"embed": True})
 
 
 def _load(request: HttpRequest) -> ConciergeState:
