@@ -20,6 +20,12 @@
   const csrf = () => document.cookie.split("; ").find((c) => c.startsWith("csrftoken="))?.split("=")[1] ?? "";
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const isOpen = () => !overlay.classList.contains("hidden");
+  const isEmbed = root.dataset.embed === "true";
+  const notifyParent = (state) => {
+    if (isEmbed && window.parent !== window) {
+      window.parent.postMessage({ type: `iwp-concierge:${state}` }, "*");
+    }
+  };
   const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
   let state = null;     // last full payload from the server
@@ -281,6 +287,7 @@
   async function open(prompt) {
     overlay.classList.replace("hidden", "flex");
     launcher.dataset.hidden = "true";
+    notifyParent("open");
     syncMobileViewport();
     setUnread(0);
     await load();
@@ -295,6 +302,7 @@
   function close() {
     overlay.classList.replace("flex", "hidden");
     launcher.dataset.hidden = "false";
+    notifyParent("close");
     input.blur();
     syncMobileViewport();
     schedulePoll();
@@ -332,4 +340,5 @@
   if (new URLSearchParams(window.location.search).get("chat") === "open") open();
 
   initialState().then((data) => { if (data.live && !state) renderAll(data); }).catch(() => {});
+  notifyParent("ready");
 })();
