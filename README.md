@@ -149,6 +149,20 @@ Session-authenticated; staff only. Browsable at `/api/` when signed in.
 
 Public chat endpoints (CSRF-protected): `GET /concierge/state/`, `POST /concierge/messages/` `{"text": "..."}`, `POST /concierge/reset/`.
 
+## Embed on a PHP website
+
+Deploy this Django app on a subdomain of the PHP website, for example `chat.example.com`. Then add this tag before `</body>` in the shared PHP layout or footer:
+
+```html
+<script
+  src="https://chat.example.com/static/js/concierge-embed.js"
+  data-concierge-url="https://chat.example.com/embed/"
+  defer
+></script>
+```
+
+The loader adds a floating launcher and expands the iframe when the visitor opens the chat. Keeping the PHP site and chatbot under the same parent domain lets browser session cookies preserve the conversation and live handoff. Set `DJANGO_ALLOWED_HOSTS=chat.example.com` and add the deployed URL to `DJANGO_CSRF_TRUSTED_ORIGINS`.
+
 ## Deploy
 
 **Render (free tier):** push to GitHub, then in Render choose *New → Blueprint* and select the repository. `render.yaml` provisions PostgreSQL and the web service, generates a secret key, and `build.sh` runs migrations and loads the demo data.
